@@ -199,10 +199,18 @@ textarea{resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:.8re
 .presenti{font-size:.88rem;color:var(--pri)}
 .fonte{display:flex;gap:6px;flex-wrap:wrap;align-items:baseline}
 .chip.t-K{background:var(--warn-soft);color:var(--warn)}
+.sync{font-weight:700}
+.sync.s-ok{color:var(--ok)}.sync.s-offline,.sync.s-invio,.sync.s-carico{color:var(--warn)}.sync.s-errore{color:var(--bad)}
+.login{max-width:420px;margin:8vh auto 0;width:100%}
+.login .brand{cursor:default}
 </style></head>
 <body>
 <div id="app"></div>
 <div class="toast" id="toast" hidden></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script>
 const FONTE="Orario settimanale 2026/27 (PDF della Direzione, 24 settembre 2026)";
 const ORARIO={"classi":[],"docenti":[]};
@@ -265,7 +273,80 @@ function seed(){
 let S=null;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||S.v!==3){const old=S;S=seed();if(old&&old.profilo)S.profilo=old.profilo}
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-function save(){S.mod=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function save(){S.mod=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(CLOUD.user&&!CLOUD.scelta)pushLater()}
+
+/* ---------- Sincronizzazione online (Firebase) ---------- */
+const LINK='makeiteasy.cloud';
+const CLOUD={on:false,user:null,ready:false,stato:'',err:'',ref:null,unsub:null,scelta:null,remote:null,deferred:false,loginErr:''};
+function cloudInit(){
+  try{
+    if(typeof firebaseConfig==='undefined'||!window.firebase||!firebaseConfig.apiKey||/INCOLLA/.test(firebaseConfig.apiKey))return;
+    CLOUD.on=true;firebase.initializeApp(firebaseConfig);
+    const db=firebase.firestore();try{db.enablePersistence({synchronizeTabs:true}).catch(()=>{})}catch(e){}
+    firebase.auth().onAuthStateChanged(u=>{
+      CLOUD.user=u;CLOUD.ready=true;if(CLOUD.unsub){CLOUD.unsub();CLOUD.unsub=null}
+      if(u){CLOUD.stato='carico';CLOUD.ref=db.collection('utenti').doc(u.uid);
+        CLOUD.unsub=CLOUD.ref.onSnapshot({includeMetadataChanges:true},onRemote,err=>{CLOUD.stato='errore';CLOUD.err=err.message;render()})}
+      render();
+    });
+  }catch(e){CLOUD.on=false}
+}
+const lget=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
+const lset=(k,v)=>{try{v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
+function onRemote(snap){
+  const pend=snap.metadata.hasPendingWrites;
+  CLOUD.stato=pend?'invio':snap.metadata.fromCache?'offline':'ok';
+  const linked=lget(LINK)===CLOUD.user.uid;
+  if(!snap.exists){
+    if(snap.metadata.fromCache&&!linked){safeRender();return}
+    lset(LINK,CLOUD.user.uid);if(S.docenti.length)pushNow();safeRender();return;
+  }
+  const r=snap.data();let n=null;try{n=JSON.parse(r.stato)}catch(e){}
+  if(!n||n.v!==3){safeRender();return}
+  if(!linked){
+    if(snap.metadata.fromCache){safeRender();return}
+    if(S.docenti.length&&r.stato!==JSON.stringify(S)){CLOUD.scelta=n;render();return}
+    S=n;lset(KEY,r.stato);lset(LINK,CLOUD.user.uid);render();return;
+  }
+  if(pend)return;
+  if(r.mod&&(!S.mod||r.mod>S.mod)){S=n;lset(KEY,r.stato);safeRender()}
+  else if(S.mod&&(!r.mod||S.mod>r.mod))pushNow();
+  else safeRender();
+}
+let pushT;function pushLater(){clearTimeout(pushT);pushT=setTimeout(pushNow,600)}
+function pushNow(){
+  if(!CLOUD.ref)return;if(!S.mod)S.mod=new Date().toISOString();
+  CLOUD.ref.set({stato:JSON.stringify(S),mod:S.mod,dispositivo:(navigator.platform||'')+' '+new Date().toLocaleString('it-IT')})
+    .catch(e=>{CLOUD.stato='errore';CLOUD.err=e.message;render()});
+}
+function safeRender(){
+  const a=document.activeElement;
+  if(a&&(a.tagName==='TEXTAREA'||a.tagName==='SELECT'||(a.tagName==='INPUT'&&!['checkbox','file','button'].includes(a.type)))){CLOUD.deferred=true;return}
+  render();
+}
+document.addEventListener('focusout',()=>{if(CLOUD.deferred){CLOUD.deferred=false;setTimeout(render,0)}});
+const STATO={ok:'Sincronizzato',invio:'Sto sincronizzando…',offline:'Offline: sincronizzo appena torna la rete',carico:'Scarico i dati…',errore:'Errore di sincronizzazione'};
+function vLogin(){
+  return `<main class="main"><section class="block login"><div class="brand">${avatarHTML()}<span><span class="app">Make it easy</span><span class="hi">Accedi per ritrovare i tuoi dati su tutti i dispositivi</span></span></div>
+  <form id="loginForm" class="form"><label class="lbl" for="lEmail">Email</label><input type="text" id="lEmail" inputmode="email" autocomplete="username" autocapitalize="off" value="${esc(ui.lEmail||'')}">
+  <label class="lbl" for="lPass">Password</label><input type="password" id="lPass" autocomplete="current-password">
+  ${CLOUD.loginErr?`<p class="note warn">${esc(CLOUD.loginErr)}</p>`:''}
+  <div class="btns"><button class="btn primary" type="submit">Accedi</button><button class="link" type="button" data-act="pwReset">Ho dimenticato la password</button></div></form></section></main>`;
+}
+function vScelta(){
+  const n=CLOUD.scelta;
+  return `<main class="main"><section class="block"><h2>Quali dati tengo?</h2><p>Su questo dispositivo ci sono dati diversi da quelli salvati online.</p>
+  <p class="muted sm">Online: ${n.docenti.length} docenti, ${n.assenze.length} assenze, ultima modifica ${n.mod?esc(new Date(n.mod).toLocaleString('it-IT',{dateStyle:'medium',timeStyle:'short'})):'—'}.<br>Questo dispositivo: ${S.docenti.length} docenti, ${S.assenze.length} assenze, ultima modifica ${S.mod?esc(new Date(S.mod).toLocaleString('it-IT',{dateStyle:'medium',timeStyle:'short'})):'—'}.</p>
+  <div class="btns"><button class="btn primary" data-act="tieniOnline">Tieni i dati online</button><button class="btn" data-act="tieniLocale">Tieni quelli di questo dispositivo</button></div>
+  <p class="muted sm">Quelli che non tieni vengono sostituiti.</p></section></main>`;
+}
+async function login(){
+  const em=(document.getElementById('lEmail')?.value||'').trim(),pw=document.getElementById('lPass')?.value||'';ui.lEmail=em;
+  CLOUD.loginErr='';
+  try{await firebase.auth().signInWithEmailAndPassword(em,pw)}
+  catch(e){const c=e.code||'';CLOUD.loginErr=/invalid|wrong|not-found|credential/.test(c)?'Email o password non corrette.':/network/.test(c)?'Serve la connessione per il primo accesso.':/too-many/.test(c)?'Troppi tentativi: riprova tra qualche minuto.':'Accesso non riuscito ('+c+').';render()}
+}
+document.addEventListener('submit',e=>{if(e.target.id==='loginForm'){e.preventDefault();login()}});
 
 const ui={tab:'sost',data:iso(nextSchoolDay(new Date(),S.opzioni.sabato)),form:null,esp:new Set(),doc:null,q:'',fOrd:'medie',conferma:null,importTxt:'',copia:null,add:null};
 
@@ -446,13 +527,17 @@ const ordTag=o=>`<span class="ord ord-${o}">${NOMI_ORD[o]}</span>`;
 
 function render(){
   document.documentElement.style.setProperty('--accent',S.profilo.accento);
-  $app.innerHTML=`<header class="top"><div class="top-in"><button class="brand" data-act="tab" data-v="imp" aria-label="Apri profilo">${avatarHTML()}<span><span class="app">Make it easy</span><span class="hi">Ciao${S.profilo.nome?', '+esc(S.profilo.nome):''}</span></span></button></div>
+  if(CLOUD.on&&!CLOUD.ready){$app.innerHTML='<main class="main"><p class="muted">Avvio…</p></main>';return}
+  if(CLOUD.on&&!CLOUD.user){$app.innerHTML=vLogin();return}
+  if(CLOUD.scelta){$app.innerHTML=vScelta();return}
+  $app.innerHTML=`<header class="top"><div class="top-in"><button class="brand" data-act="tab" data-v="imp" aria-label="Apri profilo">${avatarHTML()}<span><span class="app">Make it easy</span><span class="hi">Ciao${S.profilo.nome?', '+esc(S.profilo.nome):''}${CLOUD.user?` · <span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span>`:''}</span></span></button></div>
   <nav class="tabs" role="tablist">${[['sost','Sostituzioni'],['doc','Docenti'],['imp','Impostazioni']].map(([k,l])=>`<button role="tab" aria-selected="${ui.tab===k}" class="tab ${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</nav></header>
   <main class="main">${ui.tab==='sost'?vSost():ui.tab==='doc'?vDoc():vImp()}</main>${ui.copia?vCopia():''}`;
   if(ui.copia){const t=document.getElementById('copyArea');t&&(t.focus(),t.select())}
 }
 
 function vVuoto(){
+  if(CLOUD.user&&(CLOUD.stato==='carico'||(CLOUD.stato==='offline'&&lget(LINK)!==CLOUD.user.uid)))return `<section class="block"><p class="muted">${CLOUD.stato==='offline'?'Serve la connessione per scaricare i tuoi dati la prima volta.':'Scarico i tuoi dati…'}</p></section>`;
   return `<section class="block"><h2>Benvenuta in Make it easy</h2><p>Per iniziare carica il file dell'orario (<b>make-it-easy-orario.json</b>). Resta solo su questo dispositivo.</p>
   <div class="btns"><label class="btn primary" for="primoFile">Scegli il file dell'orario</label><input type="file" id="primoFile" accept=".json,application/json,text/plain" hidden data-chg="primoFile"></div>
   <p class="muted sm">Sull'iPhone il file si trova in File, per esempio in iCloud Drive o in Download.</p></section>`;
@@ -573,7 +658,10 @@ function vImp(){
   h+=`<section class="block"><h2>Regole per le sostituzioni</h2><p class="muted">L'ordine conta: l'app propone per primo chi soddisfa il criterio più in alto. Spegni quelli che non usate.</p>
   <ol class="crit">${S.criteri.map((c,i)=>`<li class="${c.on?'':'off'}"><label class="chk"><input type="checkbox" data-chg="critOn" data-i="${i}" ${c.on?'checked':''}> ${CRIT[c.k]}</label><span class="mv"><button class="icon" data-act="critMv" data-i="${i}" data-d="-1" ${i===0?'disabled':''} aria-label="Sposta su">↑</button><button class="icon" data-act="critMv" data-i="${i}" data-d="1" ${i===S.criteri.length-1?'disabled':''} aria-label="Sposta giù">↓</button></span></li>`).join('')}</ol>
   <div class="toggles">${tog('contatore','Conta le sostituzioni fatte da ogni docente')}${tog('liberi','Proponi anche chi quel giorno non è a scuola')}${tog('sabato','La scuola fa lezione il sabato')}</div></section>`;
-  h+=`<section class="block"><h2>Backup e sincronizzazione</h2><p class="muted">I dati restano su questo dispositivo. Per passarli tra Mac e iPhone, copia il backup su uno e importalo sull'altro.</p>
+  if(CLOUD.user)h+=`<section class="block"><h2>Sincronizzazione</h2><p>Accesso come <b>${esc(CLOUD.user.email||'')}</b>. Le modifiche arrivano da sole su tutti i dispositivi dove accedi con questo account.</p>
+  <p class="sm"><span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span>${CLOUD.stato==='errore'?` <span class="muted">(${esc(CLOUD.err)})</span>`:''}</p>
+  <div class="btns">${ui.conferma==='esci'?`<span class="warn-t">Esci e cancella i dati da questo dispositivo? Restano salvati online.</span><button class="btn bad" data-act="esci">Esci</button><button class="btn ghost" data-act="conf" data-v="">Annulla</button>`:`<button class="btn" data-act="conf" data-v="esci">Esci da questo dispositivo</button>`}</div></section>`;
+  h+=`<section class="block"><h2>Backup</h2><p class="muted">${CLOUD.user?'Una copia di sicurezza da tenere a parte, se vuoi.':'I dati restano su questo dispositivo. Per passarli tra Mac e iPhone, copia il backup su uno e importalo sull\'altro.'}</p>
   <p class="sm muted">Ultima modifica: ${S.mod?esc(new Date(S.mod).toLocaleString('it-IT',{dateStyle:'medium',timeStyle:'short'})):'—'}</p>
   <div class="btns"><button class="btn" data-act="bkCopy">Copia backup</button>${TOP?`<button class="btn" data-act="bkDl">Scarica file di backup</button>`:''}</div>
   <label class="lbl" for="bkTxt">Importa un backup</label><textarea id="bkTxt" rows="3" placeholder="Incolla qui il backup, oppure scegli un file" data-chg="bkTxt">${esc(ui.importTxt)}</textarea>
@@ -630,6 +718,11 @@ document.addEventListener('click',e=>{
       catch(_){ui.conferma=null;toast('Questo testo non è un backup di Make it easy')}break}
     case 'reset':{const p=S.profilo;S=seed();S.profilo=p;ui.conferma=null;ui.doc=null;ui.form=null;save();toast('Orario ripristinato');break}
     case 'closeCopy':ui.copia=null;break;
+    case 'pwReset':{const em=(document.getElementById('lEmail')?.value||'').trim();if(!em){CLOUD.loginErr='Scrivi prima la tua email.';render();return}
+      firebase.auth().sendPasswordResetEmail(em).then(()=>toast('Ti ho mandato un\'email per cambiare password')).catch(()=>toast('Non riesco a mandare l\'email: controlla l\'indirizzo'));return}
+    case 'tieniOnline':S=CLOUD.scelta;CLOUD.scelta=null;lset(KEY,JSON.stringify(S));lset(LINK,CLOUD.user.uid);break;
+    case 'tieniLocale':CLOUD.scelta=null;lset(LINK,CLOUD.user.uid);save();pushNow();break;
+    case 'esci':ui.conferma=null;firebase.auth().signOut().then(()=>{lset(KEY,null);lset(LINK,null);location.reload()});return;
     default:return;
   }
   render();
@@ -679,6 +772,7 @@ document.addEventListener('input',e=>{
     if(el)el.innerHTML=docRows([...S.docenti].filter(d=>(!ui.fOrd||d.ordini.includes(ui.fOrd))&&(!q||d.nome.toLowerCase().includes(q))).sort(byName))}
 });
 
+cloudInit();
 render();
 
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
