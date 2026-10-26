@@ -204,6 +204,11 @@ textarea{resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:.8re
 .login{max-width:420px;margin:8vh auto 0;width:100%}
 .login .brand{cursor:default}
 .eyebrow{font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;line-height:1.2}
+.tab-wrap{overflow-x:auto;margin-inline:-2px}
+.rie{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:.92rem}
+.rie th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px 8px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+.rie td{padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+.rie tr.det td{white-space:normal;background:var(--surface)}
 </style></head>
 <body>
 <div id="app"></div>
@@ -437,7 +442,7 @@ function catene(sc){
       if(!best||rank<best.rank||(rank===best.rank&&cand.n<best.n))best=cand;
     }
     if(!best)continue;
-    out.push({d:x,tipo:'K',via:best.y,e0,liv:best.ext?'ext':'si',occ:best.ext,presente:true,catena:true,
+    out.push({d:x,tipo:'K',via:best.y,viaTipo:best.vt,e0,liv:best.ext?'ext':'si',occ:best.ext,presente:true,catena:true,
       info:`${best.y.nome} ${best.vt==='B'?'(ora buca)':'(lascia la compresenza)'} copre la sua ${e0.label} primaria`,n:contaSost(x.id),
       conosce:x.orario.some(e=>e.tipo==='L'&&e.classi.some(c=>sc.e.classi.includes(c)))});
   }
@@ -505,6 +510,58 @@ function candidati(sc){
   return res;
 }
 
+/* ---------- Storico e riepilogo ---------- */
+const TIPO_R={C:'Già in classe',D:'A disposizione',P:'Potenziamento',R:'Recupero ore',B:'Ora buca',G:'Fuori orario',F:'Chiamato apposta',S:'Tolto da compresenza',K:'Spostato a catena'};
+function foto(e,assente,sost,tipo){return {a:e.a,b:e.b,ordine:e.ordine,classe:labelE(e),nA:docente(assente)?.nome||'',nS:docente(sost)?.nome||'',tipo:tipo||''}}
+function completa(s){if(s.nS&&s.classe)return s;const e=entryById(docente(s.assente),s.impegno);return {...s,...(e?foto(e,s.assente,s.sostituto,s.tipo):{a:0,b:0,classe:'',ordine:''}),nA:s.nA||docente(s.assente)?.nome||'',nS:s.nS||docente(s.sostituto)?.nome||''}}
+const durata=m=>{const h=Math.floor(m/60),r=m%60;return h?`${h} h${r?' '+r+"'":''}`:`${r}'`};
+const FUORI=['G','F'],BUCA=['B','D','R'];
+function riepilogo(mese){
+  const rs=S.sostituzioni.filter(s=>s.data.slice(0,7)===mese).map(completa);const per={};
+  for(const s of rs){const k=s.nS||'?';const x=per[k]=per[k]||{nome:k,n:0,min:0,fuori:0,buche:0,spost:0,righe:[]};const m=Math.max(0,s.b-s.a);
+    x.n++;x.min+=m;if(FUORI.includes(s.tipo))x.fuori+=m;else if(BUCA.includes(s.tipo))x.buche+=m;else x.spost+=m;x.righe.push(s)}
+  return Object.values(per).sort((a,b)=>b.min-a.min||a.nome.localeCompare(b.nome,'it'));
+}
+function vRie(){
+  const mesi=[...new Set(S.sostituzioni.map(s=>s.data.slice(0,7)))].sort().reverse();const cur=iso(new Date()).slice(0,7);if(!mesi.includes(cur))mesi.unshift(cur);
+  const m=ui.rieMese||cur;const r=riepilogo(m);const nm=x=>{const [y,mm]=x.split('-');return new Date(+y,+mm-1,1).toLocaleDateString('it-IT',{month:'long',year:'numeric'})};
+  return `<section class="block"><div class="row2"><div><label class="lbl" for="rieMese">Mese</label><select id="rieMese" data-chg="rieMese">${mesi.map(x=>`<option value="${x}" ${x===m?'selected':''}>${nm(x)}</option>`).join('')}</select></div></div>
+  <p class="muted sm">Ore di sostituzione per docente. “Fuori orario” sono le ore in cui il docente non sarebbe stato a scuola: di solito sono quelle da pagare come ore eccedenti. Verifica con la segreteria quali conteggiare.</p></section>
+  ${r.length?`<section class="block"><div class="tab-wrap"><table class="rie"><thead><tr><th>Docente</th><th>N.</th><th>Totale</th><th>Fuori orario</th><th>Ore buche</th><th>Spostamenti</th></tr></thead><tbody>
+  ${r.map(x=>`<tr><td><button class="link" data-act="rieDet" data-v="${esc(x.nome)}">${esc(x.nome)}</button></td><td>${x.n}</td><td>${durata(x.min)}</td><td>${x.fuori?'<b>'+durata(x.fuori)+'</b>':'—'}</td><td>${x.buche?durata(x.buche):'—'}</td><td>${x.spost?durata(x.spost):'—'}</td></tr>
+   ${ui.rieDet===x.nome?`<tr class="det"><td colspan="6"><ul class="wlist">${x.righe.sort((a,b)=>a.data.localeCompare(b.data)||a.a-b.a).map(s=>`<li><span class="t">${dBreve(s.data)}</span><span class="w">${hm(s.a)}–${hm(s.b)} · ${esc(NOMI_ORD[s.ordine]||'')} ${esc(s.classe)} · al posto di ${esc(s.nA)}<span class="tag">${TIPO_R[s.tipo]||'—'}</span></span></li>`).join('')}</ul></td></tr>`:''}`).join('')}
+  </tbody></table></div>
+  <div class="btns"><button class="btn" data-act="rieCopia">Copia per Excel</button>${TOP?'<button class="btn" data-act="rieCsv">Scarica file Excel (CSV)</button>':''}</div></section>`:'<p class="empty">Nessuna sostituzione registrata in questo mese.</p>'}`;
+}
+function rieTabella(m,sep){const q=v=>sep===';'?`"${String(v).replace(/"/g,'""')}"`:String(v);
+  const rows=[['Data','Dalle','Alle','Minuti','Ordine','Classe','Assente','Sostituto','Tipo']];
+  S.sostituzioni.filter(s=>s.data.slice(0,7)===m).map(completa).sort((a,b)=>a.data.localeCompare(b.data)||a.a-b.a).forEach(s=>rows.push([s.data,hm(s.a),hm(s.b),Math.max(0,s.b-s.a),NOMI_ORD[s.ordine]||'',s.classe,s.nA,s.nS,TIPO_R[s.tipo]||'']));
+  return rows.map(r=>r.map(q).join(sep)).join('\n');}
+function messaggi(){
+  const g=parseD(ui.data).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});const per={};
+  for(const sc of scoperte(ui.data)){const s=sostDi(sc);if(!s)continue;for(const x of [s,...legati(s)]){const c=completa(x);(per[c.nS]=per[c.nS]||[]).push(c)}}
+  return Object.entries(per).map(([n,rs])=>({nome:n,testo:`Ciao ${n}, ${g} ti chiedo di sostituire:\n`+rs.sort((a,b)=>a.a-b.a).map(c=>`- ${hm(c.a)}–${hm(c.b)} ${NOMI_ORD[c.ordine]||''} ${c.classe}, al posto di ${c.nA}`).join('\n')+'\nGrazie!'}));
+}
+
+/* ---------- Aggiornamento orario ---------- */
+function diffOrario(n){const vecchi=new Set(S.docenti.map(d=>d.nome)),nuovi=new Set(n.docenti.map(d=>d.nome));
+  return {agg:[...nuovi].filter(x=>vecchi.has(x)).length,nuovi:[...nuovi].filter(x=>!vecchi.has(x)),tolti:[...vecchi].filter(x=>!nuovi.has(x))}}
+function applicaOrario(n){
+  const st=Date.now().toString(36);const old=Object.fromEntries(S.docenti.map(d=>[d.nome,d]));const oggi=iso(new Date());
+  const tutti=v=>({1:v,2:v,3:v,4:v,5:v,6:v});
+  const docs=n.docenti.map(nd=>{const o=old[nd.nome];
+    const orario=nd.orario.map(e=>({...e,id:'o'+st+'_'+e.id}));
+    if(!o)return {id:'n'+st+'_'+nd.id,nome:nd.nome,ordini:nd.ordini,orario,disp:{liv:tutti('si'),dalle:{},fino:{},mattina:false}};
+    const manuali=o.orario.filter(e=>/^(m|alt)/.test(e.id));
+    return {...o,ordini:[...new Set([...(o.ordini||[]),...nd.ordini])],orario:[...orario,...manuali]};});
+  for(const s of S.sostituzioni)Object.assign(s,completa(s));
+  const ids=new Set(docs.map(d=>d.id));
+  S.assenze=S.assenze.filter(a=>a.data<oggi||ids.has(a.docente)).map(a=>a.data>=oggi?{...a,impegni:null}:a);
+  S.sostituzioni=S.sostituzioni.filter(s=>s.data<oggi);
+  S.docenti=docs;S.classi=n.classi;S.fonte=n.fonte||'Orario aggiornato';
+}
+function archivio(){return JSON.stringify({app:'makeiteasy-sostituzioni',tipo:'archivio',creato:new Date().toISOString(),fonte:S.fonte,assenze:S.assenze.map(a=>({...a,nome:docente(a.docente)?.nome||''})),sostituzioni:S.sostituzioni.map(completa)})}
+
 /* ---------- Export ---------- */
 const legati=s=>s?S.sostituzioni.filter(x=>x.legato===s.id):[];
 function righe(){return scoperte(ui.data).filter(sc=>!sc.fac||sostDi(sc)).flatMap(sc=>{const s=sostDi(sc);
@@ -519,7 +576,12 @@ function tabella(sep){const q=v=>sep===';'?`"${String(v).replace(/"/g,'""')}"`:S
 
 let tt;function toast(m){const el=document.getElementById('toast');el.textContent=m;el.hidden=false;clearTimeout(tt);tt=setTimeout(()=>{el.hidden=true},2400)}
 function copia(txt,msg){try{navigator.clipboard.writeText(txt).then(()=>toast(msg),()=>{ui.copia=txt;render()})}catch(e){ui.copia=txt;render()}}
-function scarica(nome,txt,tipo){const b=new Blob([txt],{type:tipo});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},800)}
+function scarica(nome,txt,tipo){salvaFile(nome,new Blob([txt],{type:tipo}))}
+async function salvaFile(nome,blob){
+  const file=new File([blob],nome,{type:blob.type});
+  try{if(/iPhone|iPad|Android/i.test(navigator.userAgent)&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:nome});return true}}catch(e){if(e&&e.name==='AbortError')return false}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=nome;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);toast('File salvato');return true;
+}
 function resizeImg(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const s=240,c=document.createElement('canvas');c.width=c.height=s;const k=Math.max(s/im.width,s/im.height);const w=im.width*k,h=im.height*k;c.getContext('2d').drawImage(im,(s-w)/2,(s-h)/2,w,h);res(c.toDataURL('image/jpeg',.85))};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(file)})}
 
 /* ---------- Viste ---------- */
@@ -532,8 +594,8 @@ function render(){
   if(CLOUD.on&&!CLOUD.user){$app.innerHTML=vLogin();return}
   if(CLOUD.scelta){$app.innerHTML=vScelta();return}
   $app.innerHTML=`<header class="top"><div class="top-in"><button class="brand" data-act="tab" data-v="imp" aria-label="Apri profilo">${avatarHTML()}<span><span class="eyebrow">Make it easy</span><span class="app">Sostituzioni</span><span class="hi">Ciao${S.profilo.nome?', '+esc(S.profilo.nome):''}${CLOUD.user?` · <span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span>`:''}</span></span></button></div>
-  <nav class="tabs" role="tablist">${[['sost','Sostituzioni'],['doc','Docenti'],['imp','Impostazioni']].map(([k,l])=>`<button role="tab" aria-selected="${ui.tab===k}" class="tab ${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</nav></header>
-  <main class="main">${ui.tab==='sost'?vSost():ui.tab==='doc'?vDoc():vImp()}</main>${ui.copia?vCopia():''}`;
+  <nav class="tabs" role="tablist">${[['sost','Sostituzioni'],['rie','Ore'],['doc','Docenti'],['imp','Impostazioni']].map(([k,l])=>`<button role="tab" aria-selected="${ui.tab===k}" class="tab ${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</nav></header>
+  <main class="main">${ui.tab==='sost'?vSost():ui.tab==='rie'?vRie():ui.tab==='doc'?vDoc():vImp()}</main>${ui.copia?vCopia():''}`;
   if(ui.copia){const t=document.getElementById('copyArea');t&&(t.focus(),t.select())}
 }
 
@@ -560,7 +622,8 @@ function vSost(){
   if(sc.length)h+=`<section class="block"><div class="block-h"><h2>Ore da coprire</h2><span class="count"><b>${coperte}</b> di ${sc.length} coperte</span></div><div class="meter" aria-hidden="true"><span style="width:${coperte/sc.length*100}%"></span></div><ol class="slots">${sc.map(vSlot).join('')}</ol></section>`;
   if(fac.length)h+=`<section class="block"><div class="block-h"><h2>Dopo-scuola e post-scuola</h2><span class="count">facoltativi</span></div><p class="muted sm">Servizi fuori dall'orario delle lezioni. Coprili solo se serve: non contano nel totale.</p><ol class="slots">${fac.map(vSlot).join('')}</ol></section>`;
   if(all.length){
-    h+=`<section class="block export"><h2>Esporta</h2><p class="muted">Il riepilogo del giorno, pronto da incollare in un messaggio, in Excel o in Numbers.</p><div class="btns"><button class="btn" data-act="copyTxt">Copia testo</button><button class="btn" data-act="copyTsv">Copia per Excel</button>${TOP?`<button class="btn" data-act="dlCsv">Scarica file Excel (CSV)</button>`:''}</div></section>`;
+    h+=`<section class="block export"><h2>Esporta</h2><p class="muted">Il riepilogo del giorno, pronto da incollare in un messaggio, in Excel o in Numbers.</p><div class="btns"><button class="btn" data-act="copyTxt">Copia testo</button><button class="btn" data-act="copyTsv">Copia per Excel</button>${TOP?`<button class="btn" data-act="dlCsv">Scarica file Excel (CSV)</button>`:''}</div>
+    ${(()=>{const ms=messaggi();return ms.length?`<span class="lbl">Messaggi per i sostituti</span><ul class="wlist">${ms.map((m,i)=>`<li><span class="t">${esc(m.nome)}</span><span class="w muted sm">${esc(m.testo.split('\n').length-2)} or${m.testo.split('\n').length-2===1?'a':'e'}</span><button class="btn sm" data-act="copiaMsg" data-i="${i}">Copia messaggio</button></li>`).join('')}</ul>`:''})()}</section>`;
   } else if(ass.length){h+=`<p class="note">Gli assenti di questo giorno non hanno ore da coprire in ${S.opzioni.coordino.map(o=>NOMI_ORD[o].toLowerCase()).join(', ')||'nessun ordine'}.</p>`}
   return h;
 }
@@ -585,7 +648,7 @@ function vSlot(sc){
   const dir=candidati(sc);const ok=dir.filter(x=>tier(x)===0);const ch=ok.length?[]:catene(sc);
   const all=[0,1,2,3,4].flatMap(k=>[...dir,...ch].filter(x=>tier(x)===k));const pres=all.filter(x=>tier(x)<=2);const open=ui.esp.has(sc.key);
   const c=pres.length&&!open?pres:all;const show=open?c:c.slice(0,3);const fuori=all.length-pres.length;
-  return `<li class="slot">${head}${c.length?`<ul class="cands">${show.map((x,i)=>`<li class="cand"><span class="cand-n">${esc(x.d.nome)}${i===0?'<span class="rec">Consigliato</span>':''}</span><span class="chips"><span class="chip t-${x.tipo}">${TIPO_C[x.tipo]}${x.info?' · '+x.info:''}</span>${x.liv==='occ'?'<span class="chip t-R">Occasionale</span>':x.liv==='ext'?'<span class="chip t-R">Solo in extremis</span>':x.liv==='pref'&&x.tipo!=='C'?'<span class="chip t-B">Giorno preferito</span>':''}${x.conosce&&x.tipo!=='C'?'<span class="chip">Conosce la classe</span>':''}${S.opzioni.contatore?`<span class="chip">${x.n} sost.</span>`:''}</span><button class="btn sm ${i===0?'primary':''}" data-act="${x.catena?'assignK':'assign'}" data-k="${esc(sc.key)}" data-v="${x.d.id}"${x.catena?` data-y="${x.via.id}" data-e="${x.e0.id}"`:''}>Assegna</button></li>`).join('')}</ul>
+  return `<li class="slot">${head}${c.length?`<ul class="cands">${show.map((x,i)=>`<li class="cand"><span class="cand-n">${esc(x.d.nome)}${i===0?'<span class="rec">Consigliato</span>':''}</span><span class="chips"><span class="chip t-${x.tipo}">${TIPO_C[x.tipo]}${x.info?' · '+x.info:''}</span>${x.liv==='occ'?'<span class="chip t-R">Occasionale</span>':x.liv==='ext'?'<span class="chip t-R">Solo in extremis</span>':x.liv==='pref'&&x.tipo!=='C'?'<span class="chip t-B">Giorno preferito</span>':''}${x.conosce&&x.tipo!=='C'?'<span class="chip">Conosce la classe</span>':''}${S.opzioni.contatore?`<span class="chip">${x.n} sost.</span>`:''}</span><button class="btn sm ${i===0?'primary':''}" data-act="${x.catena?'assignK':'assign'}" data-k="${esc(sc.key)}" data-v="${x.d.id}" data-t="${x.tipo}"${x.catena?` data-y="${x.via.id}" data-e="${x.e0.id}" data-yt="${x.viaTipo}"`:''}>Assegna</button></li>`).join('')}</ul>
   ${open?`<button class="link more" data-act="esp" data-k="${esc(sc.key)}">Mostra meno</button>`:(c.length>3||(pres.length&&fuori))?`<button class="link more" data-act="esp" data-k="${esc(sc.key)}">${pres.length&&fuori?`Altre opzioni: da fuori o in extremis (${fuori})`:'Mostra tutti ('+c.length+')'}</button>`:''}
   ${!pres.length&&all.length?'<p class="note warn">Nessuno a scuola è libero a quest\'ora: restano solo chiamate da fuori o soluzioni in extremis.</p>':''}`
   :`<p class="note warn">Nessun docente libero e abilitato a quest'ora.${S.opzioni.liberi?'':' Puoi includere anche chi quel giorno non è a scuola, in Impostazioni.'}</p>`}</li>`;
@@ -662,6 +725,15 @@ function vImp(){
   if(CLOUD.user)h+=`<section class="block"><h2>Sincronizzazione</h2><p>Accesso come <b>${esc(CLOUD.user.email||'')}</b>. Le modifiche arrivano da sole su tutti i dispositivi dove accedi con questo account.</p>
   <p class="sm"><span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span>${CLOUD.stato==='errore'?` <span class="muted">(${esc(CLOUD.err)})</span>`:''}</p>
   <div class="btns">${ui.conferma==='esci'?`<span class="warn-t">Esci e cancella i dati da questo dispositivo? Restano salvati online.</span><button class="btn bad" data-act="esci">Esci</button><button class="btn ghost" data-act="conf" data-v="">Annulla</button>`:`<button class="btn" data-act="conf" data-v="esci">Esci da questo dispositivo</button>`}</div></section>`;
+  h+=`<section class="block"><h2>Orario</h2><p class="muted">In uso: ${esc(S.fonte||'—')}.</p>
+  <p class="muted sm">Quando arriva un orario nuovo (per esempio quello definitivo, o quello del prossimo anno) carica qui il file preparato dal PDF. Le regole dei docenti, le ore aggiunte a mano e lo storico delle sostituzioni restano.</p>
+  <div class="btns"><label class="btn" for="orFile">Carica nuovo orario…</label><input type="file" id="orFile" accept=".json,application/json" hidden data-chg="orFile"></div>
+  ${ui.orNuovo?(()=>{const d=diffOrario(ui.orNuovo);return `<div class="form"><p><b>${esc(ui.orNuovo.fonte||'Nuovo orario')}</b></p><p class="sm">${d.agg} docenti aggiornati${d.nuovi.length?`, ${d.nuovi.length} nuovi (${esc(d.nuovi.join(', '))})`:''}${d.tolti.length?`, ${d.tolti.length} non più presenti (${esc(d.tolti.join(', '))})`:''}.</p>
+  ${d.tolti.length?'<p class="note warn">I docenti non più presenti vengono tolti; le loro sostituzioni passate restano nel riepilogo.</p>':''}
+  ${(()=>{const f=S.sostituzioni.filter(x=>x.data>=iso(new Date())).length;return f?`<p class="note warn">${f} sostituzioni già assegnate da oggi in poi vanno riassegnate con il nuovo orario.</p>`:''})()}
+  <div class="btns"><button class="btn primary" data-act="orApplica">Usa il nuovo orario</button><button class="btn ghost" data-act="orAnnulla">Annulla</button></div></div>`})():''}</section>`;
+  h+=`<section class="block"><h2>Nuovo anno scolastico</h2><p class="muted">A fine anno: scarica l'archivio con assenze e sostituzioni, poi riparti da zero. Docenti e regole restano; dopo carica l'orario nuovo.</p>
+  ${ui.conferma==='anno'?`<div class="form"><p class="warn-t">Prima scarico l'archivio dell'anno, poi cancello assenze e sostituzioni.</p><div class="btns"><button class="btn bad" data-act="nuovoAnno">Archivia e riparti</button><button class="btn ghost" data-act="conf" data-v="">Annulla</button></div></div>`:'<button class="btn" data-act="conf" data-v="anno">Chiudi l\'anno…</button>'}</section>`;
   h+=`<section class="block"><h2>Backup</h2><p class="muted">${CLOUD.user?'Una copia di sicurezza da tenere a parte, se vuoi.':'I dati restano su questo dispositivo. Per passarli tra Mac e iPhone, copia il backup su uno e importalo sull\'altro.'}</p>
   <p class="sm muted">Ultima modifica: ${S.mod?esc(new Date(S.mod).toLocaleString('it-IT',{dateStyle:'medium',timeStyle:'short'})):'—'}</p>
   <div class="btns"><button class="btn" data-act="bkCopy">Copia backup</button>${TOP?`<button class="btn" data-act="bkDl">Scarica file di backup</button>`:''}</div>
@@ -690,11 +762,20 @@ document.addEventListener('click',e=>{
     case 'rmAss':{const a=S.assenze.find(x=>x.id===v);S.assenze=S.assenze.filter(x=>x.id!==v);
       if(a){const via=S.sostituzioni.filter(s=>s.data===a.data&&s.assente===a.docente&&!s.legato).map(s=>s.id);
         S.sostituzioni=S.sostituzioni.filter(s=>!via.includes(s.id)&&!via.includes(s.legato))}save();break}
-    case 'assign':{const sc=scoperte(ui.data).find(x=>x.key===k);if(sc){S.sostituzioni.push({id:uid(),data:sc.data,impegno:sc.e.id,assente:sc.assente,sostituto:v});save()}break}
+    case 'assign':{const sc=scoperte(ui.data).find(x=>x.key===k);if(sc){S.sostituzioni.push({id:uid(),data:sc.data,impegno:sc.e.id,assente:sc.assente,sostituto:v,...foto(sc.e,sc.assente,v,b.dataset.t)});save()}break}
     case 'unassign':S.sostituzioni=S.sostituzioni.filter(s=>s.id!==v&&s.legato!==v);save();break;
     case 'assignK':{const sc=scoperte(ui.data).find(x=>x.key===k);if(sc){const id=uid();
-      S.sostituzioni.push({id,data:sc.data,impegno:sc.e.id,assente:sc.assente,sostituto:v},{id:uid(),data:sc.data,impegno:b.dataset.e,assente:v,sostituto:b.dataset.y,legato:id});save()}break}
+      const e0=entryById(docente(v),b.dataset.e);const e0v={...e0,a:Math.max(e0.a,sc.a),b:Math.min(e0.b,sc.b)};
+      S.sostituzioni.push({id,data:sc.data,impegno:sc.e.id,assente:sc.assente,sostituto:v,...foto(sc.e,sc.assente,v,'K')},{id:uid(),data:sc.data,impegno:b.dataset.e,assente:v,sostituto:b.dataset.y,legato:id,...foto(e0v,v,b.dataset.y,b.dataset.yt||'B')});save()}break}
     case 'esp':ui.esp.has(k)?ui.esp.delete(k):ui.esp.add(k);break;
+    case 'copiaMsg':{const m=messaggi()[+b.dataset.i];if(m)copia(m.testo,'Messaggio per '+m.nome+' copiato');return}
+    case 'rieDet':ui.rieDet=ui.rieDet===v?null:v;break;
+    case 'rieCopia':copia(rieTabella(ui.rieMese||iso(new Date()).slice(0,7),'\t'),'Copiato: incollalo in Excel o Numbers');return;
+    case 'rieCsv':scarica(`riepilogo-sostituzioni-${ui.rieMese||iso(new Date()).slice(0,7)}.csv`,'\ufeff'+rieTabella(ui.rieMese||iso(new Date()).slice(0,7),';'),'text/csv');return;
+    case 'orApplica':applicaOrario(ui.orNuovo);ui.orNuovo=null;save();toast('Orario aggiornato');break;
+    case 'orAnnulla':ui.orNuovo=null;break;
+    case 'nuovoAnno':{(async()=>{const ok=await salvaFile(`archivio-sostituzioni-${iso(new Date())}.json`,new Blob([archivio()],{type:'application/json'}));
+      if(ok===false){toast('Archivio non salvato: non cancello niente');return}S.assenze=[];S.sostituzioni=[];ui.conferma=null;save();toast('Anno chiuso: carica il nuovo orario');render()})();return}
     case 'copyTxt':copia(txtExport(),'Testo copiato');return;
     case 'copyTsv':copia(tabella('\t'),'Copiato: incollalo in Excel o Numbers');return;
     case 'dlCsv':scarica(`sostituzioni-${ui.data}.csv`,'﻿'+tabella(';'),'text/csv');return;
@@ -732,6 +813,9 @@ document.addEventListener('click',e=>{
 document.addEventListener('change',e=>{
   const t=e.target;const C=t.dataset.chg;if(!C)return;const d=ui.doc&&docente(ui.doc);
   switch(C){
+    case 'orFile':{const f=t.files[0];if(!f)return;f.text().then(x=>{let j=null;try{j=JSON.parse(x)}catch(e){}
+      if(j&&j.tipo==='orario'&&Array.isArray(j.docenti)&&Array.isArray(j.classi)){ui.orNuovo=j}else toast('Questo file non è un orario per Sostituzioni');render()});return}
+    case 'rieMese':ui.rieMese=t.value;ui.rieDet=null;break;
     case 'data':if(t.value){ui.data=t.value;if(ui.form)ui.form.impegni=[]}break;
     case 'fDoc':ui.form.docente=t.value;ui.form.impegni=[];break;
     case 'fOra':{const f=ui.form;if(t.checked)f.impegni.push(t.value);else f.impegni=f.impegni.filter(x=>x!==t.value);break}
