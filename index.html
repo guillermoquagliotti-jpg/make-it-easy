@@ -840,9 +840,9 @@ function vSost(){
 function vForm(g){
   const f=ui.form;const doc=docente(f.docente);
   const lez=doc?doc.orario.filter(e=>e.g===g&&occupa(e)).sort((a,b)=>a.a-b.a):[];
-  const lista=[...S.docenti].filter(d=>d.orario.some(e=>e.g===g&&occupa(e))).sort(byName);
+  const conL=d=>d.orario.some(e=>e.g===g&&occupa(e));const lista=[...S.docenti].filter(conL).sort(byName),senza=[...S.docenti].filter(d=>!conL(d)).sort(byName);
   return `<div class="form"><label class="lbl" for="fDoc">Docente assente</label>
-  <select id="fDoc" data-chg="fDoc"><option value="">Scegli…</option>${lista.map(d=>`<option value="${d.id}" ${d.id===f.docente?'selected':''}>${esc(d.nome)} · ${d.ordini.map(o=>NOMI_ORD[o]).join(', ')}</option>`).join('')}</select>
+  <select id="fDoc" data-chg="fDoc"><option value="">Scegli…</option><optgroup label="Con lezione in questo giorno">${lista.map(d=>`<option value="${d.id}" ${d.id===f.docente?'selected':''}>${esc(d.nome)} · ${d.ordini.map(o=>NOMI_ORD[o]).join(', ')}</option>`).join('')}</optgroup>${senza.length?`<optgroup label="Senza lezioni in questo giorno">${senza.map(d=>`<option value="${d.id}" ${d.id===f.docente?'selected':''}>${esc(d.nome)}</option>`).join('')}</optgroup>`:''}</select>${doc&&!conL(doc)?'<p class="note">In questo giorno non ha lezioni in orario: segnarlo assente serve solo a non proporlo come sostituto.</p>':''}
   <div class="seg"><button class="${f.tutta?'on':''}" data-act="fTutta" data-v="1">Tutta la giornata</button><button class="${!f.tutta?'on':''}" data-act="fTutta" data-v="0">Solo alcune ore</button></div>
   ${!f.tutta?(doc?(lez.length?`<div class="checks">${lez.map(e=>`<label class="chk"><input type="checkbox" data-chg="fOra" value="${e.id}" ${f.impegni.includes(e.id)?'checked':''}> ${hm(e.a)}–${hm(e.b)} · ${NOMI_ORD[e.ordine]} ${esc(labelE(e))}</label>`).join('')}</div>`
     :`<p class="note">Nessun impegno in orario per questo docente in questo giorno.</p>`):`<p class="note">Scegli prima il docente.</p>`):''}
