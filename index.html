@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Make it easy</title>
+<title>Make it easy – Sostituzioni</title>
 <meta name="theme-color" content="#9a7bd6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Make it easy">
+<meta name="apple-mobile-web-app-title" content="Sostituzioni">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -203,6 +203,7 @@ textarea{resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:.8re
 .sync.s-ok{color:var(--ok)}.sync.s-offline,.sync.s-invio,.sync.s-carico{color:var(--warn)}.sync.s-errore{color:var(--bad)}
 .login{max-width:420px;margin:8vh auto 0;width:100%}
 .login .brand{cursor:default}
+.eyebrow{font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;line-height:1.2}
 </style></head>
 <body>
 <div id="app"></div>
@@ -327,7 +328,7 @@ function safeRender(){
 document.addEventListener('focusout',()=>{if(CLOUD.deferred){CLOUD.deferred=false;setTimeout(render,0)}});
 const STATO={ok:'Sincronizzato',invio:'Sto sincronizzando…',offline:'Offline: sincronizzo appena torna la rete',carico:'Scarico i dati…',errore:'Errore di sincronizzazione'};
 function vLogin(){
-  return `<main class="main"><section class="block login"><div class="brand">${avatarHTML()}<span><span class="app">Make it easy</span><span class="hi">Accedi per ritrovare i tuoi dati su tutti i dispositivi</span></span></div>
+  return `<main class="main"><section class="block login"><div class="brand">${avatarHTML()}<span><span class="eyebrow">Make it easy</span><span class="app">Sostituzioni</span><span class="hi">Accedi per ritrovare i tuoi dati su tutti i dispositivi</span></span></div>
   <form id="loginForm" class="form"><label class="lbl" for="lEmail">Email</label><input type="text" id="lEmail" inputmode="email" autocomplete="username" autocapitalize="off" value="${esc(ui.lEmail||'')}">
   <label class="lbl" for="lPass">Password</label><input type="password" id="lPass" autocomplete="current-password">
   ${CLOUD.loginErr?`<p class="note warn">${esc(CLOUD.loginErr)}</p>`:''}
@@ -530,7 +531,7 @@ function render(){
   if(CLOUD.on&&!CLOUD.ready){$app.innerHTML='<main class="main"><p class="muted">Avvio…</p></main>';return}
   if(CLOUD.on&&!CLOUD.user){$app.innerHTML=vLogin();return}
   if(CLOUD.scelta){$app.innerHTML=vScelta();return}
-  $app.innerHTML=`<header class="top"><div class="top-in"><button class="brand" data-act="tab" data-v="imp" aria-label="Apri profilo">${avatarHTML()}<span><span class="app">Make it easy</span><span class="hi">Ciao${S.profilo.nome?', '+esc(S.profilo.nome):''}${CLOUD.user?` · <span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span>`:''}</span></span></button></div>
+  $app.innerHTML=`<header class="top"><div class="top-in"><button class="brand" data-act="tab" data-v="imp" aria-label="Apri profilo">${avatarHTML()}<span><span class="eyebrow">Make it easy</span><span class="app">Sostituzioni</span><span class="hi">Ciao${S.profilo.nome?', '+esc(S.profilo.nome):''}${CLOUD.user?` · <span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span>`:''}</span></span></button></div>
   <nav class="tabs" role="tablist">${[['sost','Sostituzioni'],['doc','Docenti'],['imp','Impostazioni']].map(([k,l])=>`<button role="tab" aria-selected="${ui.tab===k}" class="tab ${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</nav></header>
   <main class="main">${ui.tab==='sost'?vSost():ui.tab==='doc'?vDoc():vImp()}</main>${ui.copia?vCopia():''}`;
   if(ui.copia){const t=document.getElementById('copyArea');t&&(t.focus(),t.select())}
@@ -538,7 +539,7 @@ function render(){
 
 function vVuoto(){
   if(CLOUD.user&&(CLOUD.stato==='carico'||(CLOUD.stato==='offline'&&lget(LINK)!==CLOUD.user.uid)))return `<section class="block"><p class="muted">${CLOUD.stato==='offline'?'Serve la connessione per scaricare i tuoi dati la prima volta.':'Scarico i tuoi dati…'}</p></section>`;
-  return `<section class="block"><h2>Benvenuta in Make it easy</h2><p>Per iniziare carica il file dell'orario (<b>make-it-easy-orario.json</b>). Resta solo su questo dispositivo.</p>
+  return `<section class="block"><h2>Benvenuta in Sostituzioni</h2><p>Per iniziare carica il file dell'orario (<b>make-it-easy-orario.json</b>). ${CLOUD.user?'Basta farlo una volta: gli altri dispositivi lo ricevono da soli.':'Resta solo su questo dispositivo.'}</p>
   <div class="btns"><label class="btn primary" for="primoFile">Scegli il file dell'orario</label><input type="file" id="primoFile" accept=".json,application/json,text/plain" hidden data-chg="primoFile"></div>
   <p class="muted sm">Sull'iPhone il file si trova in File, per esempio in iCloud Drive o in Download.</p></section>`;
 }
