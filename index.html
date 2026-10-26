@@ -221,6 +221,7 @@ textarea{resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:.8re
 .tabellone li .w{display:flex;gap:8px;flex-wrap:wrap;align-items:baseline}
 .tabellone li .t{font-variant-numeric:tabular-nums;font-weight:700}
 .tabellone li.mia{background:var(--accent-soft);border-radius:8px;padding-inline:8px}
+.passi{white-space:pre-wrap;font-size:.72rem;color:var(--muted);margin:0;padding-bottom:10px;overflow-wrap:anywhere}
 </style></head>
 <body>
 <div id="app"></div>
@@ -322,26 +323,33 @@ const lget=k=>{try{return localStorage.getItem(k)}catch(e){return null}};
 const lset=(k,v)=>{try{v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}};
 const em=()=>(CLOUD.user?.email||'').toLowerCase();
 const pulisci=x=>JSON.parse(JSON.stringify(x));
-const errore=e=>{if(e&&e.code==='permission-denied'&&CLOUD.ruolo){CLOUD.stato='errore';CLOUD.err='Permesso negato';render();return}CLOUD.stato='errore';CLOUD.err=e?.message||String(e);render()};
+const errore=e=>{passo('Errore: '+(e?.code||e?.message||e));if(e&&e.code==='permission-denied'&&CLOUD.ruolo){CLOUD.stato='errore';CLOUD.err='Permesso negato';render();return}CLOUD.stato='errore';CLOUD.err=e?.message||String(e);render()};
 function inizioAnno(){const t=new Date();const y=t.getMonth()>=7?t.getFullYear():t.getFullYear()-1;return `${y}-08-01`}
 function cloudInit(){
   try{
     if(typeof firebaseConfig==='undefined'||!window.firebase||!firebaseConfig.apiKey||/INCOLLA/.test(firebaseConfig.apiKey))return;
     CLOUD.on=true;firebase.initializeApp(firebaseConfig);
-    db=firebase.firestore();try{db.enablePersistence({synchronizeTabs:true}).catch(()=>{})}catch(e){}
+    db=firebase.firestore();if(lget('makeiteasy.noPersist')!=='1'){try{db.enablePersistence({synchronizeTabs:true}).catch(()=>{})}catch(e){}}
     firebase.auth().onAuthStateChanged(u=>{
       stacca(true);CLOUD.user=u;CLOUD.ready=true;CLOUD.ruolo=null;CLOUD.sid=null;CLOUD.nessuna=false;CLOUD.scuola=null;
-      if(u){CLOUD.stato='carico';const sid=lget(SIDK+u.uid);if(sid)attacca(sid);else trova()}
+      if(u){CLOUD.stato='carico';CLOUD.err='';CLOUD.inizio=Date.now();const sid=lget(SIDK+u.uid);if(sid){passo('Mi collego allo spazio della scuola salvato');attacca(sid)}else trova();cane()}
       render();
     });
   }catch(e){CLOUD.on=false}
 }
 function stacca(tutto){CLOUD.dati.forEach(f=>{try{f()}catch(e){}});CLOUD.dati=[];CLOUD.collOk={};if(tutto&&CLOUD.unsub){try{CLOUD.unsub()}catch(e){}CLOUD.unsub=null}}
+function passo(t){CLOUD.passo=t;CLOUD.passi=[...(CLOUD.passi||[]).slice(-6),new Date().toLocaleTimeString('it-IT')+' '+t]}
+function conTempo(pr,ms,cosa){return Promise.race([pr,new Promise((_,rej)=>setTimeout(()=>{const e=new Error('Nessuna risposta dal database ('+cosa+')');e.code='timeout';rej(e)},ms))])}
+// cane da guardia: se dopo 12 secondi non c'è ancora un ruolo, mostra dove si è fermata e cosa fare
+function cane(){clearTimeout(CLOUD.caneT);CLOUD.caneT=setTimeout(()=>{if(CLOUD.user&&!CLOUD.ruolo&&!CLOUD.nessuna&&!CLOUD.lavoro){CLOUD.bloccata=true;render()}},12000)}
 async function trova(){
+  CLOUD.ricercato=true;
   try{
-    const q=await db.collection('scuole').where('emails','array-contains',em()).limit(1).get();
+    passo('Cerco lo spazio della scuola per '+em());
+    const q=await conTempo(db.collection('scuole').where('emails','array-contains',em()).limit(1).get(),15000,'ricerca della scuola');
     if(!q.empty){attacca(q.docs[0].id);return}
-    const leg=await db.collection('utenti').doc(CLOUD.user.uid).get();const d=leg.exists?leg.data():null;
+    passo('Cerco i dati della versione precedente');
+    const leg=await conTempo(db.collection('utenti').doc(CLOUD.user.uid).get(),15000,'dati precedenti');const d=leg.exists?leg.data():null;
     if(d&&d.stato&&!d.migrato){let n=null;try{n=JSON.parse(d.stato)}catch(e){}if(n&&n.v===3){await creaScuola(n);return}}
     if(S.docenti.length&&lget(LINKOLD)===CLOUD.user.uid){await creaScuola(S);return}
     CLOUD.nessuna=true;CLOUD.stato='ok';render();
@@ -350,25 +358,25 @@ async function trova(){
 async function creaScuola(n){
   CLOUD.lavoro=true;render();
   try{
-    S=n;const ref=db.collection('scuole').doc();const e=em();
-    await ref.set({nome:'',membri:{[e]:{ruolo:'admin',docente:null}},emails:[e],creato:new Date().toISOString()});
+    S=n;const ref=db.collection('scuole').doc();const e=em();passo('Creo lo spazio della scuola');
+    await conTempo(ref.set({nome:'',membri:{[e]:{ruolo:'admin',docente:null}},emails:[e],creato:new Date().toISOString()}),20000,'creazione dello spazio');passo('Copio docenti, assenze e sostituzioni');
     const cfg={};CFG.forEach(k=>cfg[k]=S[k]);const cs=JSON.stringify(cfg);const mod=S.mod||new Date().toISOString();
     await ref.collection('dati').doc('config').set({stato:cs,mod});CLOUD.cfgSent=cs;CLOUD.cfgMod=mod;
     for(const name of ['assenze','sostituzioni']){const arr=(S[name]||[]).map(x=>pulisci(name==='sostituzioni'?completa(x):x));
       for(let i=0;i<arr.length;i+=400){const b=db.batch();arr.slice(i,i+400).forEach(x=>b.set(ref.collection(name).doc(x.id),x));await b.commit()}}
     await db.collection('utenti').doc(CLOUD.user.uid).set({migrato:ref.id,profilo:S.profilo||null});
-    CLOUD.lavoro=false;attacca(ref.id);
+    CLOUD.lavoro=false;passo('Dati copiati');attacca(ref.id);
   }catch(e){CLOUD.lavoro=false;errore(e)}
 }
 function attacca(sid){
-  stacca(true);CLOUD.sid=sid;CLOUD.nessuna=false;lset(SIDK+CLOUD.user.uid,sid);
-  CLOUD.unsub=db.collection('scuole').doc(sid).onSnapshot(sn=>{
-    if(!sn.exists){if(!sn.metadata.fromCache)fuori('Lo spazio della scuola non esiste più.');return}
-    const d=sn.data();CLOUD.scuola=d;const r=d.membri?.[em()]?.ruolo||null;
+  stacca(true);if(CLOUD.sid!==sid&&!CLOUD.ricercato)CLOUD.ricercato=false;CLOUD.sid=sid;CLOUD.nessuna=false;lset(SIDK+CLOUD.user.uid,sid);
+  CLOUD.unsub=db.collection('scuole').doc(sid).onSnapshot({includeMetadataChanges:true},sn=>{
+    if(!sn.exists){if(!sn.metadata.fromCache){passo('Lo spazio salvato non esiste: lo cerco di nuovo');stacca(true);lset(SIDK+CLOUD.user.uid,null);CLOUD.sid=null;trova()}return}
+    const d=sn.data();CLOUD.scuola=d;const r=d.membri?.[em()]?.ruolo||null;passo('Spazio trovato, ruolo: '+(r||'nessuno'));CLOUD.bloccata=false;
     if(!r){fuori('La tua email non è nell\'elenco della scuola. Chiedi a chi gestisce le sostituzioni di aggiungerti.');return}
     if(r!==CLOUD.ruolo){CLOUD.ruolo=r;avvia()}
     safeRender();
-  },e=>{if(e.code==='permission-denied')fuori('La tua email non è nell\'elenco della scuola. Chiedi a chi gestisce le sostituzioni di aggiungerti.');else errore(e)});
+  },e=>{if(e.code==='permission-denied'){if(!CLOUD.ricercato){CLOUD.ricercato=true;passo('Accesso negato allo spazio salvato: lo cerco di nuovo');stacca(true);lset(SIDK+CLOUD.user.uid,null);CLOUD.sid=null;CLOUD.ruolo=null;trova();return}fuori('La tua email non è nell\'elenco della scuola. Chiedi a chi gestisce le sostituzioni di aggiungerti.')}else errore(e)});
 }
 function fuori(msg){stacca(true);lset(SIDK+CLOUD.user.uid,null);CLOUD.sid=null;CLOUD.ruolo=null;CLOUD.scuola=null;CLOUD.nessuna=true;CLOUD.msg=msg;render()}
 function avvia(){
@@ -742,7 +750,7 @@ function render(){
   if(CLOUD.on&&!CLOUD.user){$app.innerHTML=vLogin();return}
   if(CLOUD.lavoro){$app.innerHTML='<main class="main"><p class="muted">Sposto i tuoi dati nello spazio condiviso della scuola…</p></main>';return}
   if(CLOUD.on&&CLOUD.nessuna){$app.innerHTML=vNessuna();return}
-  if(CLOUD.on&&!CLOUD.ruolo){$app.innerHTML=`<main class="main"><p class="muted">${CLOUD.stato==='errore'?'Errore: '+esc(CLOUD.err):'Carico i dati della scuola…'}</p></main>`;return}
+  if(CLOUD.on&&!CLOUD.ruolo){$app.innerHTML=vAttesa();return}
   if(CLOUD.ruolo==='user'){$app.innerHTML=vUser();return}
   $app.innerHTML=`<header class="top"><div class="top-in"><button class="brand" data-act="tab" data-v="imp" aria-label="Apri profilo">${avatarHTML()}<span><span class="eyebrow">Make it easy</span><span class="app">Sostituzioni</span><span class="hi">Ciao${S.profilo.nome?', '+esc(S.profilo.nome):''}${CLOUD.user?` · <span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span>`:''}</span></span></button></div>
   <nav class="tabs" role="tablist">${[['sost','Sostituzioni'],['rie','Ore'],['doc','Docenti'],['imp','Impostazioni']].map(([k,l])=>`<button role="tab" aria-selected="${ui.tab===k}" class="tab ${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</nav></header>
@@ -750,6 +758,15 @@ function render(){
   if(ui.copia){const t=document.getElementById('copyArea');t&&(t.focus(),t.select())}
 }
 
+function vAttesa(){
+  const fermo=CLOUD.bloccata||CLOUD.stato==='errore';
+  if(!fermo)return `<main class="main"><p class="muted">Carico i dati della scuola…</p><p class="muted sm">${esc(CLOUD.passo||'')}</p></main>`;
+  return `<main class="main"><section class="block login"><h2>Non riesco a caricare i dati</h2>
+  <p>${CLOUD.stato==='errore'?'Errore: <b>'+esc(CLOUD.err)+'</b>':'Il database non risponde.'}</p>
+  <p class="muted sm">Accesso come ${esc(CLOUD.user?.email||'')}. Ultimo passo: ${esc(CLOUD.passo||'—')}</p>
+  <div class="btns"><button class="btn primary" data-act="riprovaCarico">Riprova</button><button class="btn" data-act="senzaCache">Riprova senza memoria offline</button><button class="link" data-act="esci">Esci</button></div>
+  <details class="ord-box"><summary><span>Dettagli per l'assistenza</span></summary><pre class="passi">${esc((CLOUD.passi||[]).join('\n'))}\n${esc(navigator.userAgent)}</pre></details></section></main>`;
+}
 function vNessuna(){
   return `<main class="main"><section class="block login"><div class="brand">${avatarHTML()}<span><span class="eyebrow">Make it easy</span><span class="app">Sostituzioni</span><span class="hi">${esc(CLOUD.user?.email||'')}</span></span></div>
   <p>${esc(CLOUD.msg||'Il tuo account non fa ancora parte di nessuna scuola.')}</p>
@@ -971,6 +988,8 @@ document.addEventListener('click',e=>{
     case 'orAnnulla':ui.orNuovo=null;break;
     case 'nuovoAnno':{(async()=>{const ok=await salvaFile(`archivio-sostituzioni-${iso(new Date())}.json`,new Blob([archivio()],{type:'application/json'}));
       if(ok===false){toast('Archivio non salvato: non cancello niente');return}S.assenze=[];S.sostituzioni=[];ui.conferma=null;save();toast('Anno chiuso: carica il nuovo orario');render()})();return}
+    case 'riprovaCarico':CLOUD.bloccata=false;CLOUD.stato='carico';CLOUD.err='';stacca(true);if(CLOUD.user)lset(SIDK+CLOUD.user.uid,null);render();trova();cane();return;
+    case 'senzaCache':lset('makeiteasy.noPersist','1');if(CLOUD.user)lset(SIDK+CLOUD.user.uid,null);location.reload();return;
     case 'riprova':CLOUD.nessuna=false;CLOUD.msg='';CLOUD.stato='carico';render();trova();return;
     case 'nuovaScuola':ui.conferma=null;creaScuola(S);return;
     case 'addPersona':{const e=val('npEmail').trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast('Scrivi un\'email valida');return}
