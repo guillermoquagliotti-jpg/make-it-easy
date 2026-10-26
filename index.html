@@ -607,13 +607,14 @@ function candidati(sc){
 
 /* ---------- Storico e riepilogo ---------- */
 const TIPO_R={C:'Già in classe',D:'A disposizione',P:'Potenziamento',R:'Recupero ore',B:'Ora buca',G:'Fuori orario',F:'Chiamato apposta',S:'Tolto da compresenza',K:'Spostato a catena'};
-function foto(e,assente,sost,tipo){return {a:e.a,b:e.b,ordine:e.ordine,classe:labelE(e),nA:docente(assente)?.nome||'',nS:docente(sost)?.nome||'',tipo:tipo||''}}
+function foto(e,assente,sost,tipo){return {a:e.a,b:e.b,...(e.conta!=null?{conta:e.conta}:{}),ordine:e.ordine,classe:labelE(e),nA:docente(assente)?.nome||'',nS:docente(sost)?.nome||'',tipo:tipo||''}}
 function completa(s){if(s.nS&&s.classe)return s;const e=entryById(docente(s.assente),s.impegno);return {...s,...(e?foto(e,s.assente,s.sostituto,s.tipo):{a:0,b:0,classe:'',ordine:''}),nA:s.nA||docente(s.assente)?.nome||'',nS:s.nS||docente(s.sostituto)?.nome||''}}
+const minuti=s=>s.conta!=null?s.conta:Math.max(0,s.b-s.a);
 const durata=m=>{const h=Math.floor(m/60),r=m%60;return h?`${h} h${r?' '+r+"'":''}`:`${r}'`};
 const FUORI=['G','F'],BUCA=['B','D','R'];
 function riepilogo(mese){
   const rs=S.sostituzioni.filter(s=>s.data.slice(0,7)===mese).map(completa);const per={};
-  for(const s of rs){const k=s.nS||'?';const x=per[k]=per[k]||{nome:k,n:0,min:0,fuori:0,buche:0,spost:0,righe:[]};const m=Math.max(0,s.b-s.a);
+  for(const s of rs){const k=s.nS||'?';const x=per[k]=per[k]||{nome:k,n:0,min:0,fuori:0,buche:0,spost:0,righe:[]};const m=minuti(s);
     x.n++;x.min+=m;if(FUORI.includes(s.tipo))x.fuori+=m;else if(BUCA.includes(s.tipo))x.buche+=m;else x.spost+=m;x.righe.push(s)}
   return Object.values(per).sort((a,b)=>b.min-a.min||a.nome.localeCompare(b.nome,'it'));
 }
@@ -630,7 +631,7 @@ function vRie(){
 }
 function rieTabella(m,sep){const q=v=>sep===';'?`"${String(v).replace(/"/g,'""')}"`:String(v);
   const rows=[['Data','Dalle','Alle','Minuti','Ordine','Classe','Assente','Sostituto','Tipo']];
-  S.sostituzioni.filter(s=>s.data.slice(0,7)===m).map(completa).sort((a,b)=>a.data.localeCompare(b.data)||a.a-b.a).forEach(s=>rows.push([s.data,hm(s.a),hm(s.b),Math.max(0,s.b-s.a),NOMI_ORD[s.ordine]||'',s.classe,s.nA,s.nS,TIPO_R[s.tipo]||'']));
+  S.sostituzioni.filter(s=>s.data.slice(0,7)===m).map(completa).sort((a,b)=>a.data.localeCompare(b.data)||a.a-b.a).forEach(s=>rows.push([s.data,hm(s.a),hm(s.b),minuti(s),NOMI_ORD[s.ordine]||'',s.classe,s.nA,s.nS,TIPO_R[s.tipo]||'']));
   return rows.map(r=>r.map(q).join(sep)).join('\n');}
 function messaggi(){
   const g=parseD(ui.data).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'});const per={};
@@ -712,7 +713,7 @@ function xlsxRiepilogo(m){
   righe.push({h:26,c:[{v:'⭐ Totale',s:XS.tot},{v:T('n'),s:XS.tot},{v:ore(T('min')),s:XS.nTot},{v:ore(T('fuori')),s:XS.nTot},{v:ore(T('buche')),s:XS.nTot},{v:ore(T('spost')),s:XS.nTot}]});
   const det=[{h:36,c:[{v:`📋  Dettaglio – ${nm}`,s:XS.titolo}]},{h:10,c:[]},{h:26,c:['📅 Data','Dalle','Alle','Minuti','Ordine','🎒 Classe','🙋 Assente','⭐ Sostituto','Tipo'].map(v=>({v,s:XS.head}))}];
   S.sostituzioni.filter(s=>s.data.slice(0,7)===m).map(completa).sort((a,b)=>a.data.localeCompare(b.data)||a.a-b.a).forEach(s=>{const st=XS[s.ordine]||XS.medie;
-    det.push({h:22,c:[{v:dBreveX(s.data),s:st},{v:hm(s.a),s:st},{v:hm(s.b),s:st},{v:Math.max(0,s.b-s.a),s:st},{v:NOMI_ORD[s.ordine]||'',s:st},{v:s.classe,s:st},{v:s.nA,s:st},{v:s.nS,s:st},{v:TIPO_R[s.tipo]||'',s:st}]})});
+    det.push({h:22,c:[{v:dBreveX(s.data),s:st},{v:hm(s.a),s:st},{v:hm(s.b),s:st},{v:minuti(s),s:st},{v:NOMI_ORD[s.ordine]||'',s:st},{v:s.classe,s:st},{v:s.nA,s:st},{v:s.nS,s:st},{v:TIPO_R[s.tipo]||'',s:st}]})});
   det.push({h:12,c:[]},legenda());
   return xlsx(`ore-sostituzioni-${m}.xlsx`,[{nome:'Riepilogo',cols:[24,8,14,16,14,16],merge:['A1:F1','A2:F2'],righe},{nome:'Dettaglio',cols:[16,9,9,9,11,22,18,18,20],merge:['A1:I1'],righe:det}]);
 }
