@@ -222,6 +222,7 @@ textarea{resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:.8re
 .tabellone li .t{font-variant-numeric:tabular-nums;font-weight:700}
 .tabellone li.mia{background:var(--accent-soft);border-radius:8px;padding-inline:8px}
 .passi{white-space:pre-wrap;font-size:.72rem;color:var(--muted);margin:0;padding-bottom:10px;overflow-wrap:anywhere}
+.ok-t{color:var(--ok)}
 </style></head>
 <body>
 <div id="app"></div>
@@ -403,8 +404,64 @@ function avvia(){
 }
 function pushColl(name){
   if(!CLOUD.sid||!CLOUD.collOk[name])return;const col=db.collection('scuole').doc(CLOUD.sid).collection(name);const k=CLOUD.known[name];const vivi=new Set();
-  for(const x0 of S[name]){const x=pulisci(name==='sostituzioni'?completa(x0):x0);const j=JSON.stringify(x);vivi.add(x.id);if(k[x.id]!==j){k[x.id]=j;col.doc(x.id).set(x).catch(errore)}}
-  for(const id of Object.keys(k))if(!vivi.has(id)){delete k[id];col.doc(id).delete().catch(errore)}
+  for(const x0 of S[name]){const x=pulisci(name==='sostituzioni'?completa(x0):x0);const j=JSON.stringify(x);vivi.add(x.id);if(k[x.id]!==j){const nuova=k[x.id]===undefined;k[x.id]=j;col.doc(x.id).set(x).catch(errore);if(nuova&&name==='sostituzioni')notificaSost(x,'nuova')}}
+  for(const id of Object.keys(k))if(!vivi.has(id)){let vecchia=null;try{vecchia=JSON.parse(k[id])}catch(e){}delete k[id];col.doc(id).delete().catch(errore);if(vecchia&&name==='sostituzioni')notificaSost(vecchia,'annullata')}
+}
+/* ---------- Notifiche (Web Push tramite il servizio Cloudflare) ---------- */
+const VAPID='BPuCYQHH_TMjMwpjDorGuxCSMyvTomv749JMOnRATtnx3qxA2NLqxr4Mlx2baKP_BleKBq2K4BKXtbVx_Rc6bBQ';
+const ub64u=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');s+='='.repeat((4-s.length%4)%4);return Uint8Array.from(atob(s),c=>c.charCodeAt(0))};
+const PUSHK='makeiteasy.push.';
+function notifStato(){
+  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){
+    const ios=/iPhone|iPad|iPod/.test(navigator.userAgent);const home=navigator.standalone||matchMedia('(display-mode: standalone)').matches;
+    return ios&&!home?'home':'no';}
+  if(Notification.permission==='denied')return 'negate';
+  return lget(PUSHK+(CLOUD.user?.uid||''))&&Notification.permission==='granted'?'attive':'spente';
+}
+async function idPush(endpoint){const h=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(endpoint)));return Array.from(h.slice(0,12),b=>b.toString(16).padStart(2,'0')).join('')}
+async function attivaNotifiche(){
+  try{
+    const perm=await Notification.requestPermission();if(perm!=='granted'){toast('Permesso negato: lo puoi riattivare nelle impostazioni del telefono');render();return}
+    const reg=await navigator.serviceWorker.ready;
+    const sub=(await reg.pushManager.getSubscription())||(await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:ub64u(VAPID)}));
+    const id=await idPush(sub.endpoint);const me=CLOUD.scuola?.membri?.[em()]||{};
+    await db.collection('scuole').doc(CLOUD.sid).collection('push').doc(id).set({email:em(),docente:me.docente||null,sub:JSON.stringify(sub),ua:navigator.userAgent.slice(0,120),creato:new Date().toISOString()});
+    lset(PUSHK+CLOUD.user.uid,id);toast('Notifiche attive su questo dispositivo');render();
+  }catch(e){toast('Non riesco ad attivarle: '+(e.message||e));render()}
+}
+async function spegniNotifiche(){
+  const id=lget(PUSHK+CLOUD.user.uid);
+  try{const reg=await navigator.serviceWorker.ready;const sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe()}catch(e){}
+  if(id)db.collection('scuole').doc(CLOUD.sid).collection('push').doc(id).delete().catch(()=>{});
+  lset(PUSHK+CLOUD.user.uid,null);toast('Notifiche disattivate su questo dispositivo');render();
+}
+async function inviaPush(ids,payload){
+  const url=(CLOUD.scuola?.pushUrl||'').trim().replace(/\/+$/,'');if(!url||!ids.length)return null;
+  const tok=await CLOUD.user.getIdToken();
+  const r=await fetch(url+'/send',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok},body:JSON.stringify({sid:CLOUD.sid,ids,payload})});
+  const j=await r.json().catch(()=>({}));
+  for(const x of j.risultati||[])if(x.stato===404||x.stato===410)db.collection('scuole').doc(CLOUD.sid).collection('push').doc(x.id).delete().catch(()=>{});
+  return j;
+}
+function quando(d){const t=iso(new Date()),dom=iso(new Date(Date.now()+864e5));return d===t?'Oggi':d===dom?'Domani':parseD(d).toLocaleDateString('it-IT',{weekday:'long',day:'numeric',month:'long'})}
+async function notificaSost(s,tipo){
+  try{
+    if(CLOUD.ruolo!=='admin'||!CLOUD.scuola?.pushUrl||!s||!s.sostituto||s.data<iso(new Date()))return;
+    const q=await db.collection('scuole').doc(CLOUD.sid).collection('push').where('docente','==',s.sostituto).get();const ids=q.docs.map(d=>d.id);if(!ids.length)return;
+    const nuova=tipo==='nuova';
+    await inviaPush(ids,{title:nuova?'Nuova sostituzione':'Sostituzione annullata',body:`${quando(s.data)} · ${hm(s.a)}–${hm(s.b)} · ${NOMI_ORD[s.ordine]||''} ${s.classe||''}`.trim(),tag:'sost-'+s.id,url:'./'});
+  }catch(e){}
+}
+function vNotifiche(){
+  const st=notifStato();const me=CLOUD.scuola?.membri?.[em()]||{};
+  return `<section class="block"><h2>Notifiche</h2>
+  ${!CLOUD.scuola?.pushUrl?'<p class="note">Le notifiche non sono ancora attive per la scuola: un amministratore deve inserire l\'indirizzo del servizio in Impostazioni.</p>':''}
+  ${!me.docente?'<p class="muted sm">Il tuo account non è collegato a un nome dell\'orario: le notifiche arriveranno quando un amministratore ti collega.</p>':''}
+  ${st==='home'?'<p class="note">Su iPhone le notifiche funzionano solo con l\'app aggiunta alla schermata Home (Safari → Condividi → Aggiungi alla schermata Home) e iOS 16.4 o successivo. Aprila da lì e torna qui.</p>':
+    st==='no'?'<p class="note">Questo browser non supporta le notifiche.</p>':
+    st==='negate'?'<p class="note">Le notifiche sono bloccate per questa app: riattivale nelle impostazioni del telefono o del browser.</p>':
+    st==='attive'?`<p><b class="ok-t">Attive su questo dispositivo.</b> Ti avviso quando ti viene assegnata o annullata una sostituzione.</p><div class="btns"><button class="btn" data-act="provaPush">Mandami una prova</button><button class="btn ghost" data-act="spegniPush">Disattiva</button></div>`:
+    `<p class="muted">Ricevi un avviso sul telefono o sul computer quando ti viene assegnata una sostituzione, anche con l'app chiusa.</p><div class="btns"><button class="btn primary" data-act="attivaPush">Attiva notifiche su questo dispositivo</button></div>`}</section>`;
 }
 let cfgT;function cfgLater(){clearTimeout(cfgT);cfgT=setTimeout(cfgNow,600)}
 function cfgNow(){
@@ -432,7 +489,8 @@ function safeRender(){
   if(a&&(a.tagName==='TEXTAREA'||a.tagName==='SELECT'||(a.tagName==='INPUT'&&!['checkbox','file','button'].includes(a.type)))){CLOUD.deferred=true;return}
   render();
 }
-document.addEventListener('focusout',()=>{if(CLOUD.deferred){CLOUD.deferred=false;setTimeout(render,0)}});
+const staScrivendo=()=>{const a=document.activeElement;return !!a&&(a.tagName==='TEXTAREA'||a.tagName==='SELECT'||(a.tagName==='INPUT'&&!['checkbox','file','button','radio'].includes(a.type)))};
+document.addEventListener('focusout',()=>{if(CLOUD.deferred)setTimeout(()=>{if(CLOUD.deferred&&!staScrivendo()){CLOUD.deferred=false;render()}},0)});
 const STATO={ok:'Sincronizzato',invio:'Sto sincronizzando…',offline:'Offline: sincronizzo appena torna la rete',carico:'Scarico i dati…',errore:'Errore di sincronizzazione'};
 function vLogin(){
   return `<main class="main"><section class="block login"><div class="brand">${avatarHTML()}<span><span class="eyebrow">Make it easy</span><span class="app">Sostituzioni</span><span class="hi">Accedi per ritrovare i tuoi dati su tutti i dispositivi</span></span></div>
@@ -745,7 +803,17 @@ function resizeImg(file){return new Promise((res,rej)=>{const r=new FileReader()
 function avatarHTML(cls=''){const p=S.profilo;return p.foto?`<img src="${p.foto}" alt="" class="av ${cls}">`:`<span class="av ${cls}" aria-hidden="true">${esc(((p.nome||'M').trim()[0]||'M').toUpperCase())}</span>`}
 const ordTag=o=>`<span class="ord ord-${o}">${NOMI_ORD[o]}</span>`;
 
+// i campi senza salvataggio automatico (data-chg) tengono quello che si sta scrivendo anche se la pagina si ridisegna
+const BOZZE={};
+document.addEventListener('input',e=>{const t=e.target;if(t.id&&!t.dataset.chg&&t.type!=='password'&&t.type!=='file')BOZZE[t.id]=t.type==='checkbox'?t.checked:t.value},true);
+document.addEventListener('change',e=>{const t=e.target;if(t.id&&!t.dataset.chg&&t.type!=='password'&&t.type!=='file')BOZZE[t.id]=t.type==='checkbox'?t.checked:t.value},true);
+function ripristinaBozze(){for(const [id,v] of Object.entries(BOZZE)){const el=document.getElementById(id);if(!el){continue}if(el.type==='checkbox')el.checked=!!v;else el.value=v}}
 function render(){
+  const a=document.activeElement,fid=a&&a.id&&staScrivendo()?a.id:null;let sel=null;try{if(fid)sel=[a.selectionStart,a.selectionEnd]}catch(e){}
+  render0();ripristinaBozze();
+  if(fid){const el=document.getElementById(fid);if(el&&el!==document.activeElement){el.focus({preventScroll:true});try{if(sel&&sel[0]!=null)el.setSelectionRange(sel[0],sel[1])}catch(e){}}}
+}
+function render0(){
   document.documentElement.style.setProperty('--accent',S.profilo.accento);
   if(CLOUD.on&&!CLOUD.ready){$app.innerHTML='<main class="main"><p class="muted">Avvio…</p></main>';return}
   if(CLOUD.on&&!CLOUD.user){$app.innerHTML=vLogin();return}
@@ -792,6 +860,7 @@ function vUser(){
   <section class="block"><h2>Tabellone</h2><div class="day-row"><input type="date" id="uData" value="${td}" data-chg="uData"><span class="day-name">${esc(giornoLungo(td))}</span></div>
   ${tab.length?`<ul class="tabellone">${tab.map(s=>`<li class="${mio&&s.sostituto===mio?'mia':''}"><span class="t">${hm(s.a)}–${hm(s.b)}</span><span class="w"><b>${esc(s.classe||'')}</b>${s.ordine?ordTag(s.ordine):''}<span>${esc(s.nS||'')}</span><span class="muted sm">al posto di ${esc(s.nA||'')}</span></span></li>`).join('')}</ul>`:'<p class="empty sm">Nessuna sostituzione registrata per questo giorno.</p>'}
   </section>
+  ${vNotifiche()}
   <section class="block"><div class="btns"><button class="btn ghost" data-act="esci">Esci</button></div></section></main>`;
 }
 function vPersone(){
@@ -932,7 +1001,8 @@ function vImp(){
   h+=`<section class="block"><h2>Regole per le sostituzioni</h2><p class="muted">L'ordine conta: l'app propone per primo chi soddisfa il criterio più in alto. Spegni quelli che non usate.</p>
   <ol class="crit">${S.criteri.map((c,i)=>`<li class="${c.on?'':'off'}"><label class="chk"><input type="checkbox" data-chg="critOn" data-i="${i}" ${c.on?'checked':''}> ${CRIT[c.k]}</label><span class="mv"><button class="icon" data-act="critMv" data-i="${i}" data-d="-1" ${i===0?'disabled':''} aria-label="Sposta su">↑</button><button class="icon" data-act="critMv" data-i="${i}" data-d="1" ${i===S.criteri.length-1?'disabled':''} aria-label="Sposta giù">↓</button></span></li>`).join('')}</ol>
   <div class="toggles">${tog('contatore','Conta le sostituzioni fatte da ogni docente')}${tog('liberi','Proponi anche chi quel giorno non è a scuola')}${tog('sabato','La scuola fa lezione il sabato')}</div></section>`;
-  if(CLOUD.ruolo==='admin')h+=vPersone();
+  if(CLOUD.ruolo==='admin'){h+=vPersone();h+=`<section class="block"><h2>Servizio notifiche</h2><p class="muted">Indirizzo del servizio Cloudflare che manda le notifiche (es. https://make-it-easy-push.tuonome.workers.dev). Vale per tutta la scuola.</p>
+  <input type="text" id="pushUrl" value="${esc(CLOUD.scuola?.pushUrl||'')}" data-chg="pushUrl" placeholder="https://…workers.dev" autocapitalize="off" autocomplete="off"></section>`+vNotifiche()}
   if(CLOUD.user)h+=`<section class="block"><h2>Sincronizzazione</h2><p>Accesso come <b>${esc(CLOUD.user.email||'')}</b>. Le modifiche arrivano da sole su tutti i dispositivi dove accedi con questo account.</p>
   <p class="sm"><span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span>${CLOUD.stato==='errore'?` <span class="muted">(${esc(CLOUD.err)})</span>`:''}</p>
   <div class="btns">${ui.conferma==='esci'?`<span class="warn-t">Esci e cancella i dati da questo dispositivo? Restano salvati online.</span><button class="btn bad" data-act="esci">Esci</button><button class="btn ghost" data-act="conf" data-v="">Annulla</button>`:`<button class="btn" data-act="conf" data-v="esci">Esci da questo dispositivo</button>`}</div></section>`;
@@ -991,6 +1061,10 @@ document.addEventListener('click',e=>{
       if(ok===false){toast('Archivio non salvato: non cancello niente');return}S.assenze=[];S.sostituzioni=[];ui.conferma=null;save();toast('Anno chiuso: carica il nuovo orario');render()})();return}
     case 'riprovaCarico':CLOUD.bloccata=false;CLOUD.stato='carico';CLOUD.err='';stacca(true);if(CLOUD.user)lset(SIDK+CLOUD.user.uid,null);render();trova();cane();return;
     case 'senzaCache':lset('makeiteasy.noPersist','1');if(CLOUD.user)lset(SIDK+CLOUD.user.uid,null);location.reload();return;
+    case 'attivaPush':attivaNotifiche();return;
+    case 'spegniPush':spegniNotifiche();return;
+    case 'provaPush':{const id=lget(PUSHK+CLOUD.user.uid);if(!CLOUD.scuola?.pushUrl){toast('Manca l\'indirizzo del servizio notifiche');return}
+      inviaPush([id],{title:'Prova riuscita',body:'Le notifiche delle sostituzioni arrivano su questo dispositivo.',tag:'prova',url:'./'}).then(j=>{const st=j?.risultati?.[0]?.stato;toast(st===201||st===200?'Inviata: dovrebbe arrivare tra pochi secondi':'Non inviata ('+(st||'nessuna risposta')+')')}).catch(e=>toast('Servizio non raggiungibile: '+(e.message||e)));return}
     case 'riprova':CLOUD.nessuna=false;CLOUD.msg='';CLOUD.stato='carico';render();trova();return;
     case 'nuovaScuola':ui.conferma=null;creaScuola(S);return;
     case 'addPersona':{const e=val('npEmail').trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){toast('Scrivi un\'email valida');return}
@@ -998,7 +1072,7 @@ document.addEventListener('click',e=>{
       m[e]={ruolo:val('npRuolo')||'user',docente:val('npDoc')||null};const acc=document.getElementById('npAcc')?.checked;ui.lavoro=true;render();
       (async()=>{try{await salvaMembri(m);let msg='Aggiunto: '+e;
         if(acc){const r=await creaAccount(e);msg=r==='creato'?`Account creato: a ${e} arriva un'email per scegliere la password`:r==='esisteva'?`${e} aveva già un account: gli ho mandato l'email per reimpostare la password`:`Aggiunto, ma la creazione degli account dall'app è disattivata: crealo in Firebase (Authentication → Aggiungi utente)`}
-        ui.lavoro=false;toast(msg);render()}catch(err){ui.lavoro=false;toast('Non riuscito: '+(err.code||err.message));render()}})();return}
+        ui.lavoro=false;['npEmail','npRuolo','npDoc','npAcc'].forEach(k=>delete BOZZE[k]);toast(msg);render()}catch(err){ui.lavoro=false;toast('Non riuscito: '+(err.code||err.message));render()}})();return}
     case 'rmPersona':{const e=b.dataset.e;const m={...(CLOUD.scuola?.membri||{})};delete m[e];ui.conferma=null;salvaMembri(m).then(()=>toast('Tolto: '+e)).catch(err=>toast('Non riuscito: '+(err.code||err.message)));return}
     case 'copyTxt':copia(txtExport(),'Testo copiato');return;
     case 'copyTsv':copia(tabella('\t'),'Copiato: incollalo in Excel o Numbers');return;
@@ -1037,6 +1111,7 @@ document.addEventListener('change',e=>{
   switch(C){
     case 'orFile':{const f=t.files[0];if(!f)return;f.text().then(x=>{let j=null;try{j=JSON.parse(x)}catch(e){}
       if(j&&j.tipo==='orario'&&Array.isArray(j.docenti)&&Array.isArray(j.classi)){ui.orNuovo=j}else toast('Questo file non è un orario per Sostituzioni');render()});return}
+    case 'pushUrl':db.collection('scuole').doc(CLOUD.sid).update({pushUrl:t.value.trim()}).then(()=>toast('Indirizzo salvato')).catch(errore);return;
     case 'uData':ui.uData=t.value;break;
     case 'sNome':db.collection('scuole').doc(CLOUD.sid).update({nome:t.value.trim()}).catch(errore);return;
     case 'pRuolo':{const m=JSON.parse(JSON.stringify(CLOUD.scuola.membri));const e=t.dataset.e;
