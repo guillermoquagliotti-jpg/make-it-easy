@@ -1629,7 +1629,7 @@ function vUser(){
   ${tab.length?`<ul class="tabellone">${tab.map(s=>`<li class="${mio&&s.sostituto===mio?'mia':''}"><span class="t">${hm(s.a)}–${hm(s.b)}</span><span class="w"><b>${esc(s.classe||'')}</b>${s.ordine?ordTag(s.ordine):''}<span>${esc(s.nS||'')}</span><span class="muted sm">al posto di ${esc(s.nA||'')}</span></span></li>`).join('')}</ul>`:'<p class="empty sm">Nessuna sostituzione registrata per questo giorno.</p>'}
   </section>
   ${vNotifiche()}
-  <section class="block"><div class="btns"><button class="btn ghost" data-act="esci">Esci</button></div></section></main>`;
+  <section class="block"><div class="btns"><button class="btn" data-seg>Segnala un problema</button><button class="btn ghost" data-act="esci">Esci</button></div></section></main>`;
 }
 function vPersone(){
   const m=CLOUD.scuola?.membri||{};const lista=Object.entries(m).sort((a,b)=>(a[1].ruolo===b[1].ruolo?a[0].localeCompare(b[0]):a[1].ruolo==='admin'?-1:1));
@@ -1797,6 +1797,7 @@ function vImp(){
   ${ui.conferma==='imp'?`<span class="warn-t">Sostituisce tutti i dati attuali.</span><button class="btn bad" data-act="bkImp">Conferma importazione</button><button class="btn ghost" data-act="conf" data-v="">Annulla</button>`:`<button class="btn primary" id="bkGo" data-act="conf" data-v="imp" ${ui.importTxt.trim()?'':'disabled'}>Importa</button>`}</div>
   <div class="reset">${ui.conferma==='reset'?`<span class="warn-t">Ripristinare l'orario importato? Assenze, sostituzioni e modifiche agli orari andranno perse.</span><button class="btn bad" data-act="reset">Sì, ripristina</button><button class="btn ghost" data-act="conf" data-v="">Annulla</button>`:`<button class="link" data-act="conf" data-v="reset">Ripristina l'orario importato</button>`}</div></section>
   <p class="proto">Modulo Sostituzioni. Prossimi moduli: gestione classi, voti e correzioni, programmazioni, PDP/PEI.</p>`;
+  h+=`<section class="block"><h2>Segnala un problema</h2><p class="muted">Se qualcosa non funziona, scrivi cosa è successo: l'app aggiunge da sola versione, telefono e ultimi errori, così si capisce subito dove intervenire. La mandi con WhatsApp, Mail o Messaggi.</p><div class="btns"><button class="btn" data-seg>Segnala un problema</button></div></section>`;
   return h;
 }
 
@@ -1959,6 +1960,71 @@ rifaiBase();
 bzCarica();
 cloudInit();
 render();
+
+var SEG_APP={id:"sost",nome:"Sostituzioni",v:"v18",toast:true};
+/* ---------- Segnala un problema ----------
+   Registro sul dispositivo (ultimi 120 eventi): errori, avvisi mostrati, schede aperte e pulsanti toccati.
+   Solo NOMI delle azioni, mai i valori scritti (niente nomi di alunni, voti, testi).
+   La segnalazione si manda con il menu Condividi del telefono, per email o si copia: nessun dato va online da solo. */
+(function(){
+  var A=window.SEG_APP||{id:'app',nome:'App',v:''};var K='makeiteasy.log.'+A.id,KM='makeiteasy.segnala.email';
+  var L=[];try{L=JSON.parse(localStorage.getItem(K)||'[]')}catch(e){L=[]}
+  var ultimo=0,timer=null;
+  function salva(){clearTimeout(timer);timer=setTimeout(function(){try{localStorage.setItem(K,JSON.stringify(L.slice(-120)))}catch(e){}},300)}
+  function add(k,x){L.push({t:Date.now(),k:k,x:String(x==null?'':x).slice(0,240)});if(L.length>160)L=L.slice(-120);salva()}
+  var sicuro=function(v){return v&&/^[A-Za-z0-9_.:-]{1,24}$/.test(v)?v:''};
+  document.addEventListener('click',function(e){var t=e.target;if(!t||!t.closest)return;var s=t.closest('[data-seg]');if(s){e.preventDefault();e.stopPropagation();apri();return}
+    var b=t.closest('[data-act]');if(b){var v=sicuro(b.dataset.v);add('tocco',b.dataset.act+(v&&b.dataset.act==='tab'?' → '+v:''))}},true);
+  document.addEventListener('change',function(e){var t=e.target;if(t&&t.dataset&&(t.dataset.chg||t.id))add('campo',t.dataset.chg||t.id)},true);
+  window.addEventListener('error',function(e){if(!e.message)return;add('ERRORE',e.message+' ('+String(e.filename||'').split('/').pop()+':'+e.lineno+')');avviso()});
+  window.addEventListener('unhandledrejection',function(e){var r=e.reason;var m=r&&(r.code||r.message)?(r.code?r.code+': ':'')+(r.message||''):String(r);add('ERRORE',m);avviso()});
+  var ce=console.error;console.error=function(){try{add('console',[].map.call(arguments,function(a){return a&&a.message?a.message:typeof a==='object'?'[oggetto]':String(a)}).join(' '))}catch(e){}return ce.apply(console,arguments)};
+  window.addEventListener('load',function(){add('apertura',A.nome+' '+A.v+(navigator.onLine?'':' (offline)'));
+    if(A.toast&&typeof window.toast==='function'){var o=window.toast;window.toast=function(m){add('messaggio',m);return o.apply(this,arguments)}}});
+  window.addEventListener('online',function(){add('rete','tornata online')});window.addEventListener('offline',function(){add('rete','offline')});
+  var css=document.createElement('style');css.textContent=
+    '.seg-bar{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:9998;display:flex;gap:.6rem;align-items:center;justify-content:space-between;background:#2b2240;color:#fff;border-radius:14px;padding:.6rem .8rem;box-shadow:0 8px 30px rgba(0,0,0,.25);font:15px/1.3 system-ui,sans-serif;max-width:560px;margin:0 auto}'+
+    '.seg-bar button{font:inherit;border:0;border-radius:999px;padding:.4rem .8rem;cursor:pointer}.seg-bar .seg-go{background:#fff;color:#2b2240;font-weight:700}.seg-bar .seg-x{background:transparent;color:#fff}'+
+    '.seg-ov{position:fixed;inset:0;z-index:9999;background:rgba(20,10,40,.45);display:flex;align-items:flex-end;justify-content:center}'+
+    '.seg-box{background:#fff;color:#222;width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:1rem 1rem calc(1rem + env(safe-area-inset-bottom,0px));font:16px/1.4 system-ui,sans-serif}'+
+    '@media(min-width:600px){.seg-ov{align-items:center}.seg-box{border-radius:18px}}'+
+    '.seg-box h2{margin:0 0 .3rem;font-size:1.2rem}.seg-box p{margin:.3rem 0}.seg-box textarea,.seg-box input{width:100%;box-sizing:border-box;font:inherit;border:1px solid #ccc;border-radius:10px;padding:.5rem}'+
+    '.seg-box textarea{min-height:7rem}.seg-btns{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.7rem}.seg-btns button{font:inherit;border:1px solid #ccc;background:#fff;border-radius:999px;padding:.5rem 1rem;cursor:pointer}'+
+    '.seg-btns .seg-p{background:var(--accent,#9a7bd6);border-color:var(--accent,#9a7bd6);color:#fff;font-weight:700}.seg-sm{font-size:.85rem;color:#666}.seg-log{font:12px/1.35 ui-monospace,Menlo,monospace;background:#f6f4fa;border-radius:10px;padding:.5rem;max-height:10rem;overflow:auto;white-space:pre-wrap}';
+  document.head.appendChild(css);
+  var bar=null;
+  function avviso(){var now=Date.now();if(now-ultimo<60000||document.querySelector('.seg-ov'))return;ultimo=now;if(bar)bar.remove();
+    bar=document.createElement('div');bar.className='seg-bar';bar.setAttribute('role','alert');bar.innerHTML='<span>Qualcosa non ha funzionato.</span><span><button class="seg-go">Segnala</button><button class="seg-x" aria-label="Chiudi">✕</button></span>';
+    bar.querySelector('.seg-go').onclick=function(){bar.remove();bar=null;apri()};bar.querySelector('.seg-x').onclick=function(){bar.remove();bar=null};document.body.appendChild(bar);
+    setTimeout(function(){if(bar){bar.remove();bar=null}},15000)}
+  var hh=function(t){var d=new Date(t);return d.toLocaleDateString('it-IT',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('it-IT')};
+  function contesto(){var c=[];try{if(typeof ui!=='undefined'&&ui.tab)c.push('scheda: '+ui.tab)}catch(e){}try{if(typeof CLOUD!=='undefined'){c.push('sincronizzazione: '+(CLOUD.stato||'—')+(CLOUD.err?' ('+CLOUD.err+')':''));if(CLOUD.ruolo)c.push('ruolo: '+CLOUD.ruolo)}}catch(e){}
+    var ua=navigator.userAgent;var dev=/iPhone/.test(ua)?'iPhone':/iPad/.test(ua)?'iPad':/Macintosh/.test(ua)?'Mac':/Android/.test(ua)?'Android':/Windows/.test(ua)?'Windows':'altro';
+    var ios=(ua.match(/OS (\d+[._]\d+)/)||[])[1];var br=/CriOS|Chrome/.test(ua)?'Chrome':/FxiOS|Firefox/.test(ua)?'Firefox':/Safari/.test(ua)?'Safari':'browser';
+    var st=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone?'app sulla Home':'nel browser';
+    c.push('dispositivo: '+dev+(ios?' iOS '+ios.replace('_','.'):'')+', '+br+', '+st+', schermo '+screen.width+'×'+screen.height+(navigator.onLine?'':' — OFFLINE'));return c}
+  function testo(desc){var err=L.filter(function(x){return x.k==='ERRORE'||x.k==='console'}).slice(-15),az=L.slice(-40);
+    return 'Segnalazione Make it easy – '+A.nome+' '+A.v+'\n'+hh(Date.now())+'\n\nCosa è successo:\n'+(desc||'(non scritto)')+'\n\n'+contesto().join('\n')+
+      '\n\nUltimi errori:\n'+(err.length?err.map(function(x){return hh(x.t)+'  '+x.x}).join('\n'):'nessuno')+
+      '\n\nUltime azioni:\n'+az.map(function(x){return hh(x.t).slice(6)+'  '+x.k+(x.x?': '+x.x:'')}).join('\n')}
+  function apri(){var ov=document.createElement('div');ov.className='seg-ov';var mail='';try{mail=localStorage.getItem(KM)||''}catch(e){}
+    ov.innerHTML='<div class="seg-box" role="dialog" aria-label="Segnala un problema"><h2>Segnala un problema</h2><p class="seg-sm">Scrivi cosa stavi facendo e cosa è andato storto. Se puoi, fai anche uno screenshot e mandalo insieme.</p>'+
+      '<textarea id="segDesc" placeholder="Es. ho toccato Assegna per la 2A delle 9 e non è successo niente"></textarea>'+
+      '<details><summary class="seg-sm">Cosa viene aggiunto in automatico</summary><p class="seg-sm">Versione dell\'app, tipo di telefono, scheda aperta, stato della sincronizzazione, ultimi errori e ultime azioni (solo i nomi dei pulsanti, mai quello che hai scritto).</p><div class="seg-log"></div></details>'+
+      '<label class="seg-sm" for="segMail">Email a cui mandarla (facoltativa, viene ricordata)</label><input id="segMail" type="email" autocomplete="email" value="'+mail.replace(/"/g,'&quot;')+'">'+
+      '<div class="seg-btns">'+(navigator.share?'<button class="seg-p" data-a="share">Invia…</button>':'')+'<button class="'+(navigator.share?'':'seg-p')+'" data-a="mail">Manda per email</button><button data-a="copia">Copia il testo</button><button data-a="chiudi">Chiudi</button></div><p class="seg-sm seg-ok" hidden></p></div>';
+    document.body.appendChild(ov);var desc=ov.querySelector('#segDesc');desc.focus();
+    ov.querySelector('.seg-log').textContent=testo('').split('\n').slice(4).join('\n');
+    var ok=function(m){var p=ov.querySelector('.seg-ok');p.textContent=m;p.hidden=false};
+    ov.addEventListener('click',function(e){if(e.target===ov){ov.remove();return}var b=e.target.closest('[data-a]');if(!b)return;var a=b.dataset.a;var t=testo(desc.value.trim());
+      var m=ov.querySelector('#segMail').value.trim();try{localStorage.setItem(KM,m)}catch(_){}
+      if(a==='chiudi'){ov.remove();return}
+      if(a==='share'){navigator.share({title:'Segnalazione '+A.nome,text:t}).then(function(){add('segnalazione','inviata');ok('Inviata. Grazie!')}).catch(function(){})}
+      if(a==='mail'){var body=t.length>1800?t.slice(0,1800)+'\n…(testo tagliato: usa "Copia il testo" per averlo tutto)':t;location.href='mailto:'+encodeURIComponent(m)+'?subject='+encodeURIComponent('Segnalazione '+A.nome+' '+A.v)+'&body='+encodeURIComponent(body);add('segnalazione','email');ok('Si apre la tua app di posta.')}
+      if(a==='copia'){var fatto=function(){ok('Testo copiato: incollalo in un messaggio.');add('segnalazione','copiata')};
+        if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(fatto).catch(function(){desc.value=t;desc.select();ok('Seleziona tutto e copia.')});else{desc.value=t;desc.select();try{document.execCommand('copy');fatto()}catch(_){}}}})}
+  window.SEG={add:add,apri:apri,testo:testo,log:function(){return L.slice()}};
+})();
 
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 </script>
