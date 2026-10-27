@@ -255,6 +255,61 @@ textarea{resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:.8re
 .wz-cols li{display:flex;flex-wrap:wrap;gap:.35rem .6rem;align-items:center;padding:.45rem 0;border-bottom:1px solid #eee}
 .wz-h{display:flex;flex-direction:column;min-width:8rem;flex:1}
 .wz-cols select{flex:1;min-width:11rem}.wz-cols input{flex:1;min-width:7rem}
+/* Prepara orario */
+.btns.col{flex-direction:column;align-items:stretch;max-width:22rem}
+.bz-sub{display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.6rem}
+.bz-sub button{font:inherit;border:1px solid var(--line,#e4dcf3);background:#fff;border-radius:999px;padding:.35rem .8rem;cursor:pointer}
+.bz-sub button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.bz-n{display:inline-block;min-width:1.3rem;padding:0 .3rem;border-radius:999px;background:#f2c94c;color:#3a2a00;font-size:.75rem;text-align:center}
+.bz-n.err{background:#c62828;color:#fff}
+.bz-chips{display:flex;flex-wrap:wrap;gap:.3rem;align-items:center;margin:.3rem 0}
+.chipb{font:inherit;font-size:.85rem;border:1px solid var(--line,#e4dcf3);background:#fff;border-radius:8px;padding:.3rem .6rem;cursor:pointer}
+.chipb.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.bz-ev{max-width:14rem}
+.bz-blk h3{margin:0 0 .4rem}
+.bz-wrap{overflow:auto;max-height:75vh;-webkit-overflow-scrolling:touch;border:1px solid var(--line,#e4dcf3);border-radius:10px}
+.bz-t{border-collapse:separate;border-spacing:0;font-size:.78rem;min-width:100%}
+.bz-t th{position:sticky;top:0;background:#f6f3fc;z-index:2;padding:.3rem .35rem;font-weight:700;white-space:nowrap;border-bottom:1px solid #ddd}
+.bz-t th.srv{color:#7a6e99;font-weight:600}
+.bz-t th.bz-ora{left:0;z-index:3;font-variant-numeric:tabular-nums}
+.bz-t tbody th.bz-ora{top:auto;z-index:1;background:#fbfaff;color:#555;vertical-align:top}
+.bz-t td{border-right:1px solid #eee;border-bottom:1px solid #eee;padding:0;vertical-align:top;min-width:5.6rem}
+.bz-t td button{display:block;width:100%;height:100%;min-height:2.1rem;text-align:left;font:inherit;background:none;border:0;padding:.25rem .35rem;cursor:pointer;color:inherit}
+.bz-c.vuota button{color:#c9c2d9;text-align:center}
+.bz-c.vuota button:hover{background:#f6f3fc;color:var(--accent)}
+.bz-c:not(.vuota){background:#fff}
+.bz-c.mensa{background:#fff7c2}
+.bz-c.avv{box-shadow:inset 3px 0 0 #e0a800}
+.bz-c.err{box-shadow:inset 0 0 0 2px #c62828;background:#fff1f1}
+.bz-c.sel{box-shadow:inset 0 0 0 3px var(--accent)}
+.bz-c.evid{background:#e6dcfb}
+.bz-n1{display:block;font-weight:600;line-height:1.2}.bz-n1 small{font-weight:400;color:#7a6e99}
+.bz-n2{display:block;color:#6d6585;font-size:.72rem;line-height:1.2;margin-top:.1rem}
+.bz-ed{position:sticky;bottom:0;z-index:20;margin:.5rem 0;background:#fff;border:2px solid var(--accent);border-radius:14px;padding:.7rem .8rem;box-shadow:0 -6px 24px rgba(40,20,80,.15);max-height:70vh;overflow:auto}
+.bz-ed-h{display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin-bottom:.3rem}
+.bz-docs{list-style:none;padding:0;margin:.3rem 0}
+.bz-docs li{display:flex;flex-wrap:wrap;gap:.3rem .7rem;align-items:center;padding:.3rem 0;border-bottom:1px solid #f0edf6}
+.bz-row{display:flex;flex-wrap:wrap;gap:.5rem 1rem;align-items:center;margin:.5rem 0}
+.bz-row label{display:flex;gap:.3rem;align-items:center}
+.bz-doc-h{display:flex;flex-wrap:wrap;gap:.3rem 1rem;align-items:center;justify-content:space-between}
+.bz-num{width:4.2rem}
+.bz-vinc{list-style:none;padding:0;margin:.4rem 0}
+.bz-vinc li{display:flex;flex-wrap:wrap;gap:.3rem .5rem;align-items:center;padding:.3rem 0;border-bottom:1px solid #f0edf6}
+.bz-vt{font-weight:700;min-width:9rem}
+.bz-prob{list-style:none;padding:0;margin:.3rem 0}
+.bz-prob li{padding:.25rem 0;border-bottom:1px solid #f0edf6}
+.bz-prob li.err button{color:#b71c1c}
+.err-t{color:#b71c1c}
+.bad-t{color:#b71c1c}
+.bz-cols{list-style:none;padding:0;margin:.3rem 0}
+.bz-cols li{display:flex;gap:.4rem;align-items:center;padding:.2rem 0}
+.bz-cols input{flex:1;min-width:6rem}
+.bz-fasce{display:flex;flex-wrap:wrap;gap:1rem}.bz-fasce label{display:flex;flex-direction:column;font-weight:700}.bz-fasce textarea{width:9rem;font-variant-numeric:tabular-nums}
+@media (min-width:1000px){.main.wide{max-width:min(100%,1800px)}}
+.bz-vinc li input,.bz-vinc li select,.bz-doc-h input,.bz-row select{width:auto;min-width:0}
+.bz-vinc li input.grow{flex:1;min-width:10rem}
+.bz-num{width:4.6rem!important}
+.bz-vinc li select{max-width:12rem}
 </style></head>
 <body>
 <div id="app"></div>
@@ -279,6 +334,337 @@ https://github.com/nodeca/pako/blob/main/LICENSE
 <script>
 const FONTE="Orario settimanale 2026/27 (PDF della Direzione, 24 settembre 2026)";
 const ORARIO={"classi":[],"docenti":[]};
+/* ---------- Prepara orario: bozza modificabile, vincoli, controlli, Excel ----------
+   La bozza è separata dall'orario in vigore: scuole/{sid}/dati/bozza (solo ADMIN), copia locale in localStorage.
+   Struttura:
+   { v, nome, creato, mod, giorni:[1..5],
+     colonne:[{id,ordine,tipo:'c'|'s',nome}]            classi ('c') e colonne di servizio ('s': assistenza, sostegno), nell'ordine dell'Excel
+     fasce:{infanzia:[{a,b}],primaria:[…],medie:[…]}    righe di base della griglia (minuti)
+     caselle:[{id,g,ordine,a,b,col:[id],doc:[{n,s?}],mat?,mensa?}]   s = di sostegno; il primo nome è il titolare, gli altri in compresenza
+     docenti:[{n,ore?,vincoli:[{id,t,g?,da?,al?,ora?,n?,testo?}]}] }
+   Per usarla o esportarla la bozza diventa una griglia nello stesso formato dell'Excel della Direzione, letta con leggiConSchema:
+   così l'Excel esportato e l'orario usato dalle sostituzioni sono la stessa cosa. */
+var BZ={b:null,sent:'',t:null,undo:[],cache:null,da:''};
+var BZK='makeiteasy.bozza';
+var BZ_TIPI={nd:'Non disponibile',libero:'Giorno libero',entra:'Non prima delle',esce:'Non dopo le',maxOre:'Massimo ore al giorno',maxBuche:'Massimo ore buche al giorno',nota:'Nota (promemoria)'};
+var BZ_ORD_H={infanzia:'INFAN',primaria:'PRIM',medie:'MEDIE'};
+function bzCarica(){try{const x=localStorage.getItem(BZK);if(x)BZ.b=JSON.parse(x)}catch(e){}}
+function bzSalva(){BZ.cache=null;const b=BZ.b;if(b)b.mod=new Date().toISOString();try{b?localStorage.setItem(BZK,JSON.stringify(b)):localStorage.removeItem(BZK)}catch(e){}
+  clearTimeout(BZ.t);BZ.t=setTimeout(bzInvia,700)}
+function bzInvia(){if(typeof db==='undefined'||!db||!CLOUD.sid||CLOUD.ruolo!=='admin')return;const ref=db.collection('scuole').doc(CLOUD.sid).collection('dati').doc('bozza');
+  if(!BZ.b){if(BZ.sent){BZ.sent='';ref.delete().catch(errore)}return}
+  const st=JSON.stringify(BZ.b);if(st===BZ.sent)return;BZ.sent=st;ref.set({stato:st,mod:BZ.b.mod,da:em()}).catch(errore)}
+function bzAscolta(ref){return ref.collection('dati').doc('bozza').onSnapshot(sn=>{if(sn.metadata.hasPendingWrites)return;
+  if(!sn.exists){if(sn.metadata.fromCache)return;if(BZ.b&&BZ.b.inviata){BZ.b=null;BZ.sent='';BZ.undo=[];BZ.cache=null;try{localStorage.removeItem(BZK)}catch(e){}safeRender()}else if(BZ.b)bzInvia();return}
+  const r=sn.data();BZ.da=r.da||'';if(r.stato===BZ.sent)return;if(BZ.b&&BZ.b.mod&&r.mod&&BZ.b.mod>r.mod){bzInvia();return}
+  try{BZ.b=JSON.parse(r.stato);BZ.b.inviata=true;BZ.sent=r.stato;BZ.cache=null;try{localStorage.setItem(BZK,JSON.stringify(BZ.b))}catch(e){}safeRender()}catch(e){}},()=>{})}
+function bzMod(fn){const b=BZ.b;BZ.undo.push(JSON.stringify(b));if(BZ.undo.length>40)BZ.undo.shift();const r=fn(b);b.inviata=true;bzSalva();return r}
+const bzColsDi=(b,o)=>b.colonne.filter(c=>c.ordine===o);
+const bzCol=(b,id)=>b.colonne.find(c=>c.id===id);
+const bzOrdini=b=>ORDINI.filter(o=>b.colonne.some(c=>c.ordine===o));
+var BZ_TOLL=5; // minuti di sovrapposizione tollerati (cambio d'ora tra primaria e medie)
+const bzTutte=(b,c)=>{const cl=bzColsDi(b,c.ordine).filter(x=>x.tipo==='c');return cl.length>1&&cl.every(x=>c.col.includes(x.id))};
+// ore che contano (contratto, massimo al giorno): alle medie ogni ora di lezione vale un'ora anche se dura 55 o 70 minuti
+const bzMin=c=>{const m=c.b-c.a;return c.ordine==='medie'&&m>=45&&m<=75?60:m};
+const bzNomeCol=(b,id)=>{const c=bzCol(b,id);return c?c.nome:'?'};
+function bzEtichetta(b,c){const cl=b.colonne.filter(x=>c.col.includes(x.id)&&x.tipo==='c');const tutte=cl.length>1&&cl.length===bzColsDi(b,c.ordine).filter(x=>x.tipo==='c').length;
+  const nome=tutte?(c.a<480?'Pre-scuola':c.a>=960?'Dopo-scuola':c.a>=690&&c.a<870?'Mensa':'Tutte le classi'):c.col.map(id=>bzNomeCol(b,id)).join(' + ');
+  return `${G_BREVI[c.g]} ${hm(c.a)} ${nome} ${NOMI_ORD[c.ordine].toLowerCase()}`}
+function bzSlug(s){return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+/* righe della griglia per un giorno e un ordine: fasce di base + inizi e fine delle caselle */
+function bzRighe(b,g,o){const F=b.fasce[o]||[];const cs=b.caselle.filter(c=>c.g===g&&c.ordine===o);const set=new Set();
+  for(const f of F){set.add(f.a);set.add(f.b)}for(const c of cs){set.add(c.a);set.add(c.b)}
+  const t=[...set].sort((x,y)=>x-y);const out=[];
+  for(let i=0;i+1<t.length;i++){const a=t[i],z=t[i+1];if(F.some(f=>f.a<=a&&z<=f.b)||cs.some(c=>c.a<=a&&z<=c.b))out.push({a,b:z})}return out}
+function bzFasceAuto(b){const out={};
+  for(const o of bzOrdini(b)){const cs=b.caselle.filter(c=>c.ordine===o);
+    if(o==='medie'){const cnt=new Map();for(const c of cs){if(c.col.length!==1||c.mensa)continue;const k=c.a+'-'+c.b;cnt.set(k,(cnt.get(k)||0)+1)}
+      const sc=[...cnt.entries()].filter(([,n])=>n>=2).map(([k,n])=>{const [a,z]=k.split('-').map(Number);return {a,b:z,n}}).sort((x,y)=>y.n-x.n||x.a-y.a);const ok=[];
+      for(const f of sc)if(!ok.some(x=>x.a<f.b&&f.a<x.b))ok.push({a:f.a,b:f.b});out[o]=ok.sort((x,y)=>x.a-y.a)}
+    else{const s=new Set();for(const c of cs){s.add(c.a);s.add(c.b)}const t=[...s].sort((x,y)=>x-y);const f=[];
+      for(let i=0;i+1<t.length;i++)if(cs.some(c=>c.a<=t[i]&&t[i+1]<=c.b))f.push({a:t[i],b:t[i+1]});out[o]=f}}
+  return out}
+/* dall'orario in uso (o da un Excel letto) alla bozza */
+function bzDaOrario(n,nome){
+  const b={v:1,nome:nome||'Nuovo orario',creato:new Date().toISOString(),giorni:S.opzioni.sabato?[1,2,3,4,5,6]:[1,2,3,4,5],colonne:[],fasce:{},caselle:[],docenti:[]};
+  const sid=(o,l)=>'s-'+o[0]+'-'+bzSlug(l);const manuale=e=>/^(m|alt)/.test(String(e.id||''));
+  const prima=n.colonne||(n===S?S.opzioni.colonneOrario:null);
+  if(prima?.length)b.colonne=prima.map(c=>({...c}));
+  for(const c of n.classi)if(!b.colonne.some(x=>x.id===c.id))b.colonne.push({id:c.id,ordine:c.ordine,tipo:'c',nome:c.nome.replace(/^Sez\.\s*/,'')});
+  const map=new Map();
+  for(const d of n.docenti)for(const e of d.orario){if(manuale(e)||!['L','X'].includes(e.tipo))continue;
+    let col,ins=null;if(e.tipo==='X'){// più colonne con lo stesso nome (es. due di sostegno): la prima libera a quell'ora
+      const cand=b.colonne.filter(x=>x.tipo==='s'&&x.ordine===e.ordine&&x.nome===e.label);ins=e.comp?.con?.length?[...map.values()].find(k=>k.g===e.g&&k.a===e.a&&k.b===e.b&&cand.some(x=>x.id===k.col[0])&&k.doc.some(y=>e.comp.con.includes(y.n))):null;let c=ins?bzCol(b,ins.col[0]):cand.find(x=>![...map.values()].some(k=>k.col[0]===x.id&&k.g===e.g&&k.a<e.b&&e.a<k.b));
+      if(!c){c={id:sid(e.ordine,e.label)+(cand.length?'-'+(cand.length+1):''),ordine:e.ordine,tipo:'s',nome:e.label};b.colonne.push(c)}col=[c.id]}else col=[...e.classi];
+    if(!col.length)continue;
+    const k=[e.g,e.ordine,e.a,e.b,e.tipo,col.join('+'),e.label,e.tipo==='X'?d.nome:''].join('|');let c=ins||map.get(k);
+    if(!c){c={id:uid(),g:e.g,ordine:e.ordine,a:e.a,b:e.b,col,doc:[]};if(/\(mensa\)$/.test(e.label||''))c.mensa=true;map.set(k,c)}
+    const sost=isSostegno(e);const mat=sost?(e.materiaOrig||''):(e.materia||'');if(mat&&!c.mat)c.mat=mat;
+    if(!c.doc.some(y=>y.n===d.nome)){const x={n:d.nome,p:e.comp?.pos??0};if(sost)x.s=true;c.doc.push(x)}}
+  for(const c of map.values()){c.doc.sort((x,y)=>x.p-y.p||x.n.localeCompare(y.n));c.doc.forEach(x=>delete x.p);b.caselle.push(c)}
+  // le colonne di servizio vanno dopo le classi del loro ordine, come nell'Excel
+  b.colonne.sort((x,y)=>ORDINI.indexOf(x.ordine)-ORDINI.indexOf(y.ordine));
+  b.fasce=bzFasceAuto(b);
+  const nomi=[...new Set(n.docenti.map(d=>d.nome))].sort((x,y)=>x.localeCompare(y,'it'));
+  b.docenti=nomi.map(nm=>bzDocDa(nm));
+  return b}
+function bzDocDa(nm){const o=S.docenti.find(d=>d.nome===nm);const pb=BZ.b?.docenti?.find(d=>d.n===nm);
+  return {n:nm,ore:pb?.ore??o?.oreContratto??null,vincoli:JSON.parse(JSON.stringify(pb?.vincoli||o?.vincoli||[]))}}
+function bzVuota(nome){const b={v:1,nome,creato:new Date().toISOString(),giorni:S.opzioni.sabato?[1,2,3,4,5,6]:[1,2,3,4,5],colonne:[],caselle:[],docenti:[],fasce:{}};
+  const prima=S.opzioni.colonneOrario;b.colonne=prima?.length?prima.map(c=>({...c})):S.classi.map(c=>({id:c.id,ordine:c.ordine,tipo:'c',nome:c.nome.replace(/^Sez\.\s*/,'')}));
+  for(const o of ORDINI){const passo=o==='medie'?60:30;const da=o==='medie'?480:450,a=o==='medie'?840:1080;b.fasce[o]=[];for(let t=da;t<a;t+=passo)b.fasce[o].push({a:t,b:t+passo})}
+  b.docenti=[...S.docenti].sort(byName).map(d=>bzDocDa(d.nome));return b}
+/* ---------- griglia nel formato dell'Excel della Direzione ---------- */
+const BZ_INV_BELL={595:600,775:780};
+function bzTitolo(c){if(c.tipo==='s'){const m=c.nome.match(/^Assistenza \((.+)\)$/);return m?m[1]:/^sostegno/i.test(c.nome)?'SOSTEGNO':'ASS '+c.nome.toUpperCase()}
+  return c.ordine==='infanzia'?c.nome.toUpperCase():c.ordine==='primaria'?c.nome+' P':c.nome+' S'}
+function bzCodice(mat,extra){const k=Object.keys(XL_MAT).find(x=>XL_MAT[x]===mat);if(k)return k;const c=mat.normalize('NFD').replace(/[^A-Za-z]/g,'').toUpperCase().slice(0,5)||'MAT';extra[c]=mat;return c}
+function bzFoglio(b){
+  const ords=bzOrdini(b);const cells=new Map(),merge=new Map(),merges=[],stile=new Map();
+  const put=(r,c,v,fill)=>{cells.set(r+','+c,{v,fill:fill||null})};
+  const unisci=(r0,c0,r1,c1)=>{if(r0===r1&&c0===c1)return;const g={r0,c0,r1,c1};for(let i=r0;i<=r1;i++)for(let j=c0;j<=c1;j++)merge.set(i+','+j,g);merges.push(g)};
+  let j=1;const cols=[],tc={},colJ={},ordJ={};
+  for(const o of ords){tc[o]=j;ordJ[j]=o;cols.push({j,h:BZ_ORD_H[o],r:'ora',nome:''});j++;for(const c of bzColsDi(b,o)){colJ[c.id]=j;ordJ[j]=o;cols.push({j,h:bzTitolo(c),r:(c.tipo==='c'?'c-':'s-')+o,nome:c.nome});j++}}
+  const med=bzColsDi(b,'medie').filter(c=>c.tipo==='c');const materie={},matExtra={};if(med.length){j++;for(const c of med){materie[colJ[c.id]]=j;j++}}
+  const maxC=j-1;let r=0;const heads=[];
+  for(const g of b.giorni){const h=r;heads.push(h);put(h,0,G_LUNGHI[g].toUpperCase());stile.set(h+',0','head');for(const c of cols){put(h,c.j,c.h);stile.set(h+','+c.j,'h-'+ordJ[c.j])}
+    for(const c of med)stile.set(h+','+materie[colJ[c.id]],'h-medie');
+    const bounds={};for(const o of ords){const s=new Set();for(const x of bzRighe(b,g,o)){s.add(x.a);s.add(x.b)}bounds[o]=[...s].sort((x,y)=>x-y)}
+    const disp=(o,t)=>o==='medie'?(BZ_INV_BELL[t]??t):t;
+    let base=[...new Set(ords.filter(o=>o!=='medie').flatMap(o=>bounds[o]))].sort((x,y)=>x-y);
+    const medRow={};
+    if(bounds.medie){const presi=new Set();for(const t of bounds.medie){const L=disp('medie',t);let cand=null;for(const x of base)if(x<=L+9)cand=x;
+      if(cand==null||presi.has(cand)||L-cand>25){base.push(L);base.sort((x,y)=>x-y);cand=L}presi.add(cand);medRow[t]=cand}}
+    const riga=t=>h+1+base.indexOf(t);const rigaO=(o,t)=>o==='medie'?riga(medRow[t]):riga(t);
+    for(const o of ords)for(const t of bounds[o]){const rr=rigaO(o,t);put(rr,tc[o],hm(disp(o,t)));stile.set(rr+','+tc[o],'ora')}
+    for(let i=0;i<base.length;i++)for(const o of ords){const k=(h+1+i)+','+tc[o];if(!stile.has(k))stile.set(k,'ora')}
+    // caselle
+    const occ=new Set();const cs=b.caselle.filter(c=>c.g===g&&c.doc.length);
+    for(const c of cs){const r0=rigaO(c.ordine,c.a),r1=rigaO(c.ordine,c.b)-1;if(!(r1>=r0))continue;for(let i=r0;i<=r1;i++)for(const id of c.col)if(colJ[id])occ.add(i+','+colJ[id])}
+    for(const c of cs){const o=c.ordine;const r0=rigaO(o,c.a),r1=rigaO(o,c.b)-1;if(!(r1>=r0))continue;
+      const js=c.col.map(id=>colJ[id]).filter(Boolean).sort((x,y)=>x-y);if(!js.length)continue;
+      // gruppi di colonne vicine; si uniscono anche sopra colonne libere dello stesso ordine (es. pre-scuola su tutte le sezioni)
+      const runs=[];for(const x of js){const l=runs[runs.length-1];if(l&&(x===l[1]+1||(()=>{for(let y=l[1]+1;y<x;y++){if(ordJ[y]!==o||tc[o]===y)return false;for(let i=r0;i<=r1;i++)if(occ.has(i+','+y))return false}return true})()))l[1]=x;else runs.push([x,x])}
+      const testo=c.doc.map(x=>x.n).join(' / ');const fill=c.mensa?'FFFFFF00':null;
+      for(const [c0,c1] of runs){put(r0,c0,testo,fill);for(let i=r0;i<=r1;i++)for(let y=c0;y<=c1;y++){stile.set(i+','+y,fill?'giallo':'cella');if(i!==r0||y!==c0)cells.delete(i+','+y)}unisci(r0,c0,r1,c1)}
+      if(o==='medie'&&c.mat&&!c.mensa&&c.col.length===1&&materie[js[0]]!=null){const code=bzCodice(c.mat,matExtra);for(let i=r0;i<=r1;i++){put(i,materie[js[0]],code);stile.set(i+','+materie[js[0]],'cella')}}}
+    for(let i=h+1;i<=h+base.length;i++)for(let y=1;y<=maxC;y++){const k=i+','+y;if(!stile.has(k)&&(ordJ[y]||Object.values(materie).includes(y)))stile.set(k,'cella')}
+    r=h+1+base.length}
+  return {cells,merge,merges,stile,maxR:r-1,maxC,heads,cols,materie,matExtra,colJ}}
+function bzLeggi(b){const F=bzFoglio(b);const sh=foglioXl(b.nome,F.cells,F.merge,F.maxR,F.maxC);
+  const j=leggiConSchema(sh,{heads:F.heads,cols:F.cols,materie:F.materie,matExtra:F.matExtra},b.nome+'.xlsx');
+  // di sostegno: lo segno sulle ore corrispondenti
+  for(const c of b.caselle)for(const x of c.doc)if(x.s){const d=j.docenti.find(y=>y.nome===x.n);if(!d)continue;
+    for(const e of d.orario)if(e.g===c.g&&e.a<c.b&&c.a<e.b&&c.col.every(id=>e.classi.includes(id))&&!isSostegno(e)){e.materiaOrig=e.materia||'';e.materia='Sostegno'}}
+  j.fonte='Preparato nell\'app: '+b.nome;j.colonne=b.colonne.map(c=>({id:c.id,ordine:c.ordine,tipo:c.tipo,nome:c.nome}));j.daBozza=true;return j}
+async function bzExcel(b){const F=bzFoglio(b);const z=new JSZip();
+  const fills=['<fill><patternFill patternType="none"/></fill>','<fill><patternFill patternType="gray125"/></fill>'];const fx=c=>{fills.push(`<fill><patternFill patternType="solid"><fgColor rgb="${c}"/><bgColor indexed="64"/></patternFill></fill>`);return fills.length-1};
+  const fG=fx('FFFFFF00'),fO=fx('FFCCECFF'),fI=fx('FFFF0000'),fP=fx('FF00B0F0'),fM=fx('FF00B050'),fH=fx('FFD9D9D9');
+  const bd='<border><left style="thin"><color rgb="FFA6A6A6"/></left><right style="thin"><color rgb="FFA6A6A6"/></right><top style="thin"><color rgb="FFA6A6A6"/></top><bottom style="thin"><color rgb="FFA6A6A6"/></bottom><diagonal/></border>';
+  const xf=(font,fill,h='center')=>`<xf numFmtId="0" fontId="${font}" fillId="${fill}" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="${h}" vertical="center" wrapText="1"/></xf>`;
+  const ST={cella:1,giallo:2,ora:3,'h-infanzia':4,'h-primaria':5,'h-medie':6,head:7};
+  const xfs=['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>',xf(0,0),xf(0,fG),xf(0,fO),xf(1,fI),xf(1,fP),xf(1,fM),xf(1,fH,'left')];
+  const styles=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="10"/><name val="Calibri"/></font><font><b/><sz val="10"/><name val="Calibri"/></font></fonts><fills count="${fills.length}">${fills.join('')}</fills><borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>${bd}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfs.join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+  const righe=[];for(let i=0;i<=F.maxR;i++){const cs=[];for(let y=0;y<=F.maxC;y++){const k=i+','+y;const c=F.cells.get(k);const s=ST[F.stile.get(k)]||0;if(!c&&!s)continue;const ref=colL(y)+(i+1);
+      cs.push(c&&c.v!=null&&c.v!==''?`<c r="${ref}" s="${s}" t="inlineStr"><is><t xml:space="preserve">${xx(c.v)}</t></is></c>`:`<c r="${ref}" s="${s}"/>`)}
+    righe.push(`<row r="${i+1}"${F.heads.includes(i)?' ht="30" customHeight="1"':''}>${cs.join('')}</row>`)}
+  const larg=y=>y===0?11:F.cols.find(c=>c.j===y)?.r==='ora'?6:Object.values(F.materie).includes(y)?7:F.cols.some(c=>c.j===y)?13:3;
+  const ws=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0"><pane xSplit="1" ySplit="1" topLeftCell="B2" activePane="bottomRight" state="frozen"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="15"/><cols>${Array.from({length:F.maxC+1},(_,y)=>`<col min="${y+1}" max="${y+1}" width="${larg(y)}" customWidth="1"/>`).join('')}</cols><sheetData>${righe.join('')}</sheetData>${F.merges.length?`<mergeCells count="${F.merges.length}">${F.merges.map(m=>`<mergeCell ref="${colL(m.c0)}${m.r0+1}:${colL(m.c1)}${m.r1+1}"/>`).join('')}</mergeCells>`:''}<pageMargins left="0.3" right="0.3" top="0.4" bottom="0.4" header="0.2" footer="0.2"/><pageSetup paperSize="8" orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>`;
+  z.file('[Content_Types].xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>');
+  z.file('_rels/.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>');
+  z.file('xl/workbook.xml','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Orario settimanale" sheetId="1" r:id="rId1"/></sheets></workbook>');
+  z.file('xl/_rels/workbook.xml.rels','<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>');
+  z.file('xl/styles.xml',styles);z.file('xl/worksheets/sheet1.xml',ws);
+  return z.generateAsync({type:'blob',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
+/* ---------- controlli ---------- */
+function bzImpegni(b){const per={};for(const c of b.caselle)for(const x of c.doc)(per[x.n]=per[x.n]||[]).push(c);return per}
+const bzGiorniV=(b,v)=>v.g?[+v.g]:b.giorni;
+function bzViola(b,d,cs,extra){ // vincoli del docente d con le sue caselle cs (+ eventuale casella in prova)
+  const out=[];const tutte=extra?[...cs,extra]:cs;const gN=g=>G_LUNGHI[g];
+  for(const v of d.vincoli||[]){const gs=bzGiorniV(b,v);
+    if(v.t==='nd'){for(const c of tutte)if(gs.includes(c.g)&&(v.da==null||c.b>v.da)&&(v.al==null||c.a<v.al))out.push({v,c,testo:`non è disponibile ${gN(c.g)}${v.da!=null||v.al!=null?` ${v.da!=null?'dalle '+hm(v.da):''}${v.al!=null?' alle '+hm(v.al):''}`:''}`})}
+    else if(v.t==='entra'&&v.ora!=null){for(const c of tutte)if(gs.includes(c.g)&&c.a<v.ora)out.push({v,c,testo:`non prima delle ${hm(v.ora)}${v.g?' il '+gN(+v.g):''}`})}
+    else if(v.t==='esce'&&v.ora!=null){for(const c of tutte)if(gs.includes(c.g)&&c.b>v.ora)out.push({v,c,testo:`non dopo le ${hm(v.ora)}${v.g?' il '+gN(+v.g):''}`})}
+    else if(v.t==='maxOre'&&v.n){for(const g of gs){const cg=tutte.filter(c=>c.g===g);const m=cg.reduce((s,c)=>s+bzMin(c),0);if(m>v.n*60)out.push({v,c:extra&&extra.g===g?extra:cg[cg.length-1],testo:`${gN(g)} ha ${durata(m)}, massimo ${v.n} h`})}}
+    else if(v.t==='maxBuche'&&v.n!=null){for(const g of gs){const cg=tutte.filter(c=>c.g===g).sort((x,y)=>x.a-y.a);let bu=0,fine=null;for(const c of cg){if(fine!=null&&c.a>fine)bu+=c.a-fine;fine=Math.max(fine??0,c.b)}if(bu>v.n*60)out.push({v,c:cg[0],testo:`${gN(g)} ha ${durata(bu)} di buchi, massimo ${v.n} h`})}}
+    else if(v.t==='libero'){if(v.g){const c=tutte.find(c=>c.g===+v.g);if(c)out.push({v,c,testo:`deve avere libero il ${gN(+v.g)}`})}
+      else{const liberi=b.giorni.filter(g=>!tutte.some(c=>c.g===g));if(liberi.length<(v.n||1))out.push({v,c:extra||null,testo:`non ha ${v.n>1?v.n+' giorni liberi':'un giorno libero'}`})}}}
+  return out}
+function bzProblemi(b){if(BZ.cache)return BZ.cache;const P=[];const per=bzImpegni(b);const lab=c=>bzEtichetta(b,c);
+  for(const [n,cs] of Object.entries(per)){const s=[...cs].sort((x,y)=>x.g-y.g||x.a-y.a);
+    for(let i=0;i<s.length;i++)for(let k=i+1;k<s.length&&s[k].g===s[i].g&&s[k].a<s[i].b;k++){const sov=Math.min(s[i].b,s[k].b)-s[k].a;if(sov<=BZ_TOLL)continue;
+      const extra=[s[i],s[k]].every(c=>c.mensa||bzTutte(b,c));P.push({liv:extra?'avv':'err',n,c:s[k].id,c2:s[i].id,testo:`${n} è in due posti: ${lab(s[i])} e ${lab(s[k])}`+(extra?' (pre-scuola, mensa o dopo-scuola: controlla se è voluto)':'')})}}
+  for(const d of b.docenti){const cs=per[d.n]||[];
+    const grp=new Map();for(const x of bzViola(b,d,cs)){const per=['nd','entra','esce'].includes(x.v.t);const k=per?x.v.id+'|'+x.testo:x.v.id+'|'+x.testo+'|'+(x.c?.id||'');const gq=grp.get(k);if(gq){gq.cs.push(x.c)}else grp.set(k,{x,per,cs:[x.c]})}
+    for(const {x,per,cs:cc} of grp.values()){const l=cc.filter(Boolean);P.push({liv:x.v.t==='maxBuche'?'avv':'err',n:d.n,c:l[0]?.id||null,testo:`${d.n}: ${x.testo}`+(per&&l.length?` — ${l.length===1?'1 ora':l.length+' ore'} in orario (${l.slice(0,3).map(lab).join('; ')}${l.length>3?'…':''})`:'')})}
+    if(d.ore){const m=cs.reduce((s,c)=>s+bzMin(c),0);if(Math.abs(m-d.ore*60)>=30)P.push({liv:'avv',n:d.n,c:null,testo:`${d.n}: ${durata(m)} in orario, da contratto ${d.ore} h`})}}
+  for(const col of b.colonne.filter(c=>c.tipo==='c'))for(const g of b.giorni){const cs=b.caselle.filter(c=>c.g===g&&c.col.includes(col.id)&&c.doc.length).sort((x,y)=>x.a-y.a);let fine=null,prev=null;
+    for(const c of cs){if(fine!=null&&c.a>fine)P.push({liv:'avv',c:c.id,col:col.id,testo:`${col.nome} ${NOMI_ORD[col.ordine].toLowerCase()} scoperta ${G_LUNGHI[g]} ${hm(fine)}–${hm(c.a)}`});fine=Math.max(fine??0,c.b);prev=c}}
+  for(const c of b.caselle)if(!c.doc.length)P.push({liv:'avv',c:c.id,testo:`Casella senza docente: ${lab(c)}`});
+  for(const c of b.caselle)if(c.ordine==='medie'&&c.col.length===1&&!c.mensa&&!c.mat&&c.doc.length&&bzCol(b,c.col[0])?.tipo==='c'&&c.a<13*60+30)P.push({liv:'avv',c:c.id,testo:`Manca la materia: ${lab(c)}`});
+  P.sort((x,y)=>(x.liv==='err'?0:1)-(y.liv==='err'?0:1));BZ.cache=P;return P}
+function bzCandidati(b,g,o,a,z,escl){const per=bzImpegni(b);const out=[];
+  for(const d of b.docenti){const cs=(per[d.n]||[]).filter(c=>c.id!==escl);const mot=[];
+    for(const c of cs)if(c.g===g&&Math.min(c.b,z)-Math.max(c.a,a)>BZ_TOLL)mot.push('occupato: '+bzEtichetta(b,c).replace(/^\S+ \S+ /,''));
+    const prima=new Set(bzViola(b,d,cs).map(x=>x.testo));for(const x of bzViola(b,d,cs,{id:'_',g,ordine:o,a,b:z,col:[]}))if(!prima.has(x.testo))mot.push(x.testo);
+    const qui=cs.some(c=>c.ordine===o);out.push({n:d.n,mot:[...new Set(mot)],qui})}
+  return out.sort((x,y)=>(x.mot.length?1:0)-(y.mot.length?1:0)||(y.qui?1:0)-(x.qui?1:0)||x.n.localeCompare(y.n,'it'))}
+/* ---------- vista ---------- */
+function vBozza(){const b=BZ.b;
+  if(!b)return `<section class="block"><h2>Prepara l'orario</h2><p class="muted">Qui si prepara l'orario nuovo (per esempio quello del prossimo anno) senza toccare quello in uso. Ogni modifica viene controllata: docenti in due posti, classi scoperte, vincoli dei docenti. Alla fine si esporta in Excel e, quando è pronto, si usa per le sostituzioni.</p>
+    <div class="btns col"><button class="btn primary" data-act="bzStart" data-v="uso">Parti dall'orario in uso</button><label class="btn" for="bzFile">Parti da un file Excel…</label><input type="file" id="bzFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden data-chg="bzFile"><button class="btn ghost" data-act="bzStart" data-v="zero">Parti da una griglia vuota</button></div></section>`;
+  const P=bzProblemi(b);const ne=P.filter(p=>p.liv==='err').length,na=P.length-ne;const sub=ui.bzSub||'griglia';
+  let h=`<section class="block bz-top"><div class="row2"><div class="grow"><label class="lbl" for="bzNome">Nome della bozza</label><input id="bzNome" type="text" value="${esc(b.nome)}" data-chg="bzNome"></div></div>
+  <p class="muted sm">${b.mod?'Ultima modifica '+new Date(b.mod).toLocaleString('it-IT',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+(BZ.da&&BZ.da!==em()?' · '+esc(BZ.da):''):''}. Se lavorate in due, una persona alla volta: vale l'ultima modifica salvata.</p>
+  <div class="btns"><button class="btn" data-act="bzExport">Scarica Excel</button><button class="btn primary" data-act="bzUsa">Usa come orario in vigore…</button>${BZ.undo.length?'<button class="btn ghost" data-act="bzUndo">Annulla ultima modifica</button>':''}</div>
+  <nav class="bz-sub">${[['griglia','Griglia'],['doc','Docenti e vincoli'],['prob',`Problemi${P.length?` <span class="bz-n ${ne?'err':''}">${P.length}</span>`:''}`],['imp','Classi e fasce']].map(([k,l])=>`<button class="${sub===k?'on':''}" data-act="bzSub" data-v="${k}">${l}</button>`).join('')}</nav></section>`;
+  if(sub==='griglia')h+=vBzGriglia(b,P);else if(sub==='doc')h+=vBzDocenti(b,P);else if(sub==='prob')h+=vBzProblemi(b,P);else h+=vBzImp(b);
+  if(ui.bzSel&&sub==='griglia')h+=vBzEditor(b,P);
+  return h}
+function vBzGriglia(b,P){const g=ui.bzG&&b.giorni.includes(ui.bzG)?ui.bzG:b.giorni[0];const ords=bzOrdini(b);const os=ui.bzO&&ui.bzO!=='tutti'&&ords.includes(ui.bzO)?[ui.bzO]:ords;
+  const errC=new Set(P.filter(p=>p.liv==='err').flatMap(p=>[p.c,p.c2]).filter(Boolean)),avvC=new Set(P.filter(p=>p.liv!=='err').map(p=>p.c).filter(Boolean));const ev=ui.bzEvid||'';
+  const ne=P.filter(p=>p.liv==='err').length;
+  let h=`<section class="block"><div class="bz-chips">${b.giorni.map(x=>`<button class="chipb ${x===g?'on':''}" data-act="bzG" data-v="${x}">${G_BREVI[x]}</button>`).join('')}</div>
+  <div class="bz-chips">${[['tutti','Tutti'],...ords.map(o=>[o,NOMI_ORD[o]])].map(([k,l])=>`<button class="chipb ${(ui.bzO||'tutti')===k?'on':''}" data-act="bzO" data-v="${k}">${l}</button>`).join('')}
+  <select data-chg="bzEvid" aria-label="Evidenzia un docente" class="bz-ev"><option value="">Evidenzia un docente…</option>${b.docenti.map(d=>`<option ${ev===d.n?'selected':''}>${esc(d.n)}</option>`).join('')}</select></div>
+  ${P.length?`<p class="sm"><button class="link" data-act="bzSub" data-v="prob">${ne?`<b class="err-t">${ne} ${ne===1?'errore':'errori'}</b>`:''}${ne&&P.length-ne?' e ':''}${P.length-ne?`${P.length-ne} ${P.length-ne===1?'avviso':'avvisi'}`:''}</button> in tutta la bozza. Tocca una casella per modificarla.</p>`:'<p class="sm ok-t">Nessun problema trovato. Tocca una casella per modificarla.</p>'}</section>`;
+  for(const o of os){const cols=bzColsDi(b,o);const R=bzRighe(b,g,o);if(!cols.length)continue;
+    const skip=new Set();
+    h+=`<section class="block bz-blk"><h3>${NOMI_ORD[o]} · ${G_LUNGHI[g]}</h3><div class="bz-wrap"><table class="bz-t"><thead><tr><th class="bz-ora">Ora</th>${cols.map(c=>`<th class="${c.tipo==='s'?'srv':''}">${esc(c.nome)}</th>`).join('')}</tr></thead><tbody>`;
+    R.forEach((row,ri)=>{h+=`<tr><th class="bz-ora">${hm(row.a)}</th>`;
+      for(const col of cols){const key=ri+'|'+col.id;if(skip.has(key))continue;
+        const c=b.caselle.find(x=>x.g===g&&x.ordine===o&&x.col.includes(col.id)&&x.a<=row.a&&row.a<x.b);
+        if(c){const span=R.filter(x=>x.a>=c.a&&x.b<=c.b).length;for(let k=1;k<span;k++)skip.add((ri+k)+'|'+col.id);
+          if(c.a<row.a){h+=`<td class="bz-c cont"></td>`;continue}
+          const sel=ui.bzSel&&ui.bzSel.id===c.id;const altre=c.col.filter(x=>x!==col.id).map(x=>bzNomeCol(b,x));
+          h+=`<td class="bz-c ${c.mensa?'mensa':''} ${errC.has(c.id)?'err':avvC.has(c.id)?'avv':''} ${sel?'sel':''} ${ev&&c.doc.some(x=>x.n===ev)?'evid':''}" rowspan="${span}"><button data-act="bzCell" data-g="${g}" data-c="${esc(col.id)}" data-a="${c.a}" data-i="${c.id}">
+            <span class="bz-n1">${c.doc.length?c.doc.map(x=>esc(x.n)+(x.s?'<small> sost.</small>':'')).join('<br>'):'<i>vuota</i>'}</span>${c.mat||c.mensa||altre.length?`<span class="bz-n2">${[c.mat,c.mensa?'mensa':'',altre.length&&altre.length<4?'con '+altre.join(', '):altre.length?'su '+(altre.length+1)+' colonne':''].filter(Boolean).map(esc).join(' · ')}</span>`:''}</button></td>`}
+        else{const sel=ui.bzSel&&!ui.bzSel.id&&ui.bzSel.g===g&&ui.bzSel.col===col.id&&ui.bzSel.a===row.a;
+          h+=`<td class="bz-c vuota ${sel?'sel':''}"><button data-act="bzCell" data-g="${g}" data-c="${esc(col.id)}" data-a="${row.a}" aria-label="${esc(col.nome)} ${hm(row.a)}, vuota">+</button></td>`}}
+      h+='</tr>'});
+    h+=`</tbody></table></div></section>`}
+  return h}
+function vBzEditor(b,P){const s=ui.bzSel;const c=s.id?b.caselle.find(x=>x.id===s.id):null;if(s.id&&!c){ui.bzSel=null;return ''}
+  const g=c?c.g:s.g,o=c?c.ordine:bzCol(b,s.col)?.ordine;if(!o)return '';const R=bzRighe(b,g,o);
+  const a=c?c.a:s.a,z=c?c.b:(R.find(x=>x.a===s.a)?.b??s.a+30);const colN=c?c.col.map(id=>bzNomeCol(b,id)).join(' + '):bzNomeCol(b,s.col);
+  const cand=bzCandidati(b,g,o,a,z,c?.id);const liberi=cand.filter(x=>!x.mot.length&&!c?.doc.some(y=>y.n===x.n)),altri=cand.filter(x=>x.mot.length&&!c?.doc.some(y=>y.n===x.n));
+  const pr=c?P.filter(p=>p.c===c.id||p.c2===c.id):[];const bounds=[...new Set(R.flatMap(x=>[x.a,x.b]))].sort((x,y)=>x-y);
+  const mats=[...new Set([...Object.values(XL_MAT).filter(m=>m!=='Scienze'||true),'Informatica',...b.caselle.map(x=>x.mat).filter(Boolean)])].sort((x,y)=>x.localeCompare(y,'it'));
+  return `<div class="bz-ed" role="dialog" aria-label="Modifica casella"><div class="bz-ed-h"><b>${G_LUNGHI[g]} · ${esc(colN)} (${NOMI_ORD[o].toLowerCase()}) · ${hm(a)}–${hm(z)}</b><button class="icon" data-act="bzChiudi" aria-label="Chiudi">✕</button></div>
+  ${pr.map(p=>`<p class="note ${p.liv==='err'?'warn':''}">${esc(p.testo)}</p>`).join('')}
+  ${c&&c.doc.length?`<ul class="bz-docs">${c.doc.map((x,i)=>`<li><b>${esc(x.n)}</b>${i>0?'<span class="muted sm">compresenza</span>':''}<label class="chk sm"><input type="checkbox" data-chg="bzSost" data-n="${esc(x.n)}" ${x.s?'checked':''}> di sostegno</label>${i>0?`<button class="link" data-act="bzDocSu" data-n="${esc(x.n)}">metti per primo</button>`:''}<button class="link bad-t" data-act="bzDocVia" data-n="${esc(x.n)}">togli</button></li>`).join('')}</ul>`:'<p class="muted sm">Nessun docente in questa casella.</p>'}
+  <label class="lbl" for="bzAdd">${c&&c.doc.length?'Aggiungi un docente (compresenza)':'Docente'}</label>
+  <select id="bzAdd" data-chg="bzAddDoc"><option value="">Scegli…</option>${liberi.length?`<optgroup label="Liberi e senza vincoli">${liberi.map(x=>`<option value="${esc(x.n)}">${esc(x.n)}${x.qui?'':' · non ha ore in '+NOMI_ORD[o].toLowerCase()}</option>`).join('')}</optgroup>`:''}${altri.length?`<optgroup label="Con problemi">${altri.map(x=>`<option value="${esc(x.n)}">${esc(x.n)} — ${esc(x.mot.join('; '))}</option>`).join('')}</optgroup>`:''}<option value="__nuovo">Un docente nuovo…</option></select>
+  ${ui.bzNuovo?`<div class="row2"><input id="bzNuovoN" type="text" placeholder="Cognome" autocomplete="off"><button class="btn sm" data-act="bzAddNuovo">Aggiungi</button></div>`:''}
+  ${c?`<div class="bz-row">${o==='medie'&&c.col.every(id=>bzCol(b,id)?.tipo==='c')?`<label>Materia <select data-chg="bzMat"><option value="">—</option>${mats.map(m=>`<option ${c.mat===m?'selected':''}>${esc(m)}</option>`).join('')}</select></label>`:''}
+    <label class="chk"><input type="checkbox" data-chg="bzMensa" ${c.mensa?'checked':''}> Mensa</label>
+    <label>Dalle <select data-chg="bzDa">${bounds.filter(t=>t<c.b).map(t=>`<option value="${t}" ${t===c.a?'selected':''}>${hm(t)}</option>`).join('')}</select></label>
+    <label>Alle <select data-chg="bzAl">${bounds.filter(t=>t>c.a).map(t=>`<option value="${t}" ${t===c.b?'selected':''}>${hm(t)}</option>`).join('')}</select></label></div>
+    <p class="lbl">Vale per</p><div class="bz-chips">${bzColsDi(b,o).map(x=>`<label class="chipb ${c.col.includes(x.id)?'on':''}"><input type="checkbox" hidden data-chg="bzColTog" data-c="${esc(x.id)}" ${c.col.includes(x.id)?'checked':''}>${esc(x.nome)}</label>`).join('')}</div>
+    <p class="lbl">Copia uguale in altri giorni</p><div class="bz-chips">${b.giorni.filter(x=>x!==g).map(x=>`<label class="chk"><input type="checkbox" class="bzCopiaG" value="${x}"> ${G_BREVI[x]}</label>`).join('')}<button class="btn sm" data-act="bzCopia">Copia</button></div>
+    <div class="btns"><button class="btn bad sm" data-act="bzElimina">Svuota la casella</button></div>`:''}</div>`}
+function vBzDocenti(b,P){const q=(ui.bzDocQ||'').toLowerCase();const per=bzImpegni(b);const gs=b.giorni;
+  const opG=(v,tutti)=>`<option value="">${tutti}</option>${gs.map(g=>`<option value="${g}" ${String(v.g||'')===String(g)?'selected':''}>${G_LUNGHI[g]}</option>`).join('')}`;
+  const t=x=>x==null?'':hm(x);
+  return `<section class="block"><p class="muted sm">Per ogni docente: ore da contratto e vincoli. L'app li controlla mentre prepari l'orario e li mostra quando scegli chi mettere in una casella. Restano salvati anche per gli anni dopo.</p>
+  <div class="row2"><input type="search" id="bzDocQ" value="${esc(ui.bzDocQ||'')}" placeholder="Cerca docente" data-chg="bzDocQ" autocomplete="off"><input type="text" id="bzDocNew" placeholder="Nuovo docente (cognome)" autocomplete="off"><button class="btn sm" data-act="bzDocAdd">Aggiungi</button></div></section>
+  ${b.docenti.filter(d=>!q||d.n.toLowerCase().includes(q)).map(d=>{const cs=per[d.n]||[];const m=cs.reduce((s,c)=>s+bzMin(c),0);const pr=P.filter(p=>p.n===d.n);
+    return `<section class="block bz-doc" id="bzd-${bzSlug(d.n)}"><div class="bz-doc-h"><b>${esc(d.n)}</b><span class="muted sm">${durata(m)} in orario · giorni: ${gs.filter(g=>cs.some(c=>c.g===g)).map(g=>G_BREVI[g]).join(' ')||'nessuno'}</span>
+    <label class="sm">Ore da contratto <input type="text" inputmode="decimal" class="bz-num" value="${d.ore??''}" data-chg="bzOre" data-n="${esc(d.n)}" placeholder="es. 18"></label></div>
+    ${pr.map(p=>`<p class="note ${p.liv==='err'?'warn':''}">${esc(p.testo)}</p>`).join('')}
+    <ul class="bz-vinc">${(d.vincoli||[]).map(v=>{const at=k=>`data-chg="bzV" data-n="${esc(d.n)}" data-i="${v.id}" data-k="${k}"`;let f='';
+      if(v.t==='nd')f=`<select ${at('g')}>${opG(v,'Tutti i giorni')}</select> dalle <input type="text" class="bz-num" ${at('da')} value="${t(v.da)}" placeholder="—"> alle <input type="text" class="bz-num" ${at('al')} value="${t(v.al)}" placeholder="—"><span class="muted sm">vuoto = tutto il giorno</span>`;
+      else if(v.t==='libero')f=`<select ${at('g')}>${opG(v,'Un giorno qualsiasi')}</select>`;
+      else if(v.t==='entra'||v.t==='esce')f=`<input type="text" class="bz-num" ${at('ora')} value="${t(v.ora)}" placeholder="9.00"> <select ${at('g')}>${opG(v,'tutti i giorni')}</select>`;
+      else if(v.t==='maxOre'||v.t==='maxBuche')f=`<input type="text" inputmode="decimal" class="bz-num" ${at('n')} value="${v.n??''}" placeholder="${v.t==='maxOre'?'5':'1'}"> ${v.t==='maxOre'?'ore':'ore buche'} <select ${at('g')}>${opG(v,'ogni giorno')}</select>`;
+      else f=`<input type="text" class="grow" ${at('testo')} value="${esc(v.testo||'')}" placeholder="Es. preferisce le prime ore">`;
+      return `<li><span class="bz-vt">${BZ_TIPI[v.t]}</span>${f}<button class="icon" data-act="bzVRm" data-n="${esc(d.n)}" data-i="${v.id}" aria-label="Togli vincolo">✕</button></li>`}).join('')}</ul>
+    <select data-chg="bzVAdd" data-n="${esc(d.n)}" aria-label="Aggiungi vincolo"><option value="">+ Aggiungi vincolo…</option>${Object.entries(BZ_TIPI).map(([k,l])=>`<option value="${k}">${l}</option>`).join('')}</select></section>`}).join('')}`}
+function vBzProblemi(b,P){if(!P.length)return '<section class="block"><p class="ok-t">Nessun problema: nessun docente in due posti, nessuna classe scoperta, vincoli rispettati.</p></section>';
+  const li=p=>`<li class="${p.liv}"><button class="link" data-act="bzVai" data-c="${p.c||''}" data-n="${esc(p.n||'')}">${esc(p.testo)}</button></li>`;
+  const e=P.filter(p=>p.liv==='err'),a=P.filter(p=>p.liv!=='err');
+  return `<section class="block">${e.length?`<h3 class="err-t">Da correggere (${e.length})</h3><ul class="bz-prob">${e.map(li).join('')}</ul>`:''}${a.length?`<h3>Da controllare (${a.length})</h3><ul class="bz-prob">${a.map(li).join('')}</ul>`:''}</section>`}
+function vBzImp(b){const f=o=>(b.fasce[o]||[]).map(x=>hm(x.a)+'-'+hm(x.b)).join('\n');
+  return `<section class="block"><h3>Classi e colonne</h3><p class="muted sm">Nell'ordine in cui compaiono nella griglia e nell'Excel. Le colonne di servizio (assistenza, sostegno) servono per le ore fuori dalle classi.</p>
+  ${ORDINI.map(o=>`<h4>${NOMI_ORD[o]}</h4><ul class="bz-cols">${bzColsDi(b,o).map((c,i,arr)=>`<li><input type="text" value="${esc(c.nome)}" data-chg="bzColNome" data-c="${esc(c.id)}" aria-label="Nome"><span class="muted sm">${c.tipo==='c'?'classe':'servizio'}</span><button class="icon" data-act="bzColMv" data-c="${esc(c.id)}" data-v="-1" ${i?'':'disabled'} aria-label="Sposta su">↑</button><button class="icon" data-act="bzColMv" data-c="${esc(c.id)}" data-v="1" ${i<arr.length-1?'':'disabled'} aria-label="Sposta giù">↓</button><button class="icon" data-act="bzColRm" data-c="${esc(c.id)}" aria-label="Togli">✕</button></li>`).join('')}</ul>
+    <div class="row2"><input type="text" id="bzNC-${o}" placeholder="${o==='infanzia'?'Es. Farfalle':o==='primaria'?'Es. 1C':'Es. 1B'}" autocomplete="off"><button class="btn sm" data-act="bzColAdd" data-o="${o}" data-v="c">Aggiungi classe</button><button class="btn sm ghost" data-act="bzColAdd" data-o="${o}" data-v="s">Aggiungi colonna di servizio</button></div>`).join('')}
+  ${ui.bzColRm?`<p class="note warn">${esc(ui.bzColRm.msg)} <button class="btn bad sm" data-act="bzColRmOk">Togli comunque</button> <button class="btn ghost sm" data-act="bzColRmNo">Annulla</button></p>`:''}</section>
+  <section class="block"><h3>Fasce orarie</h3><p class="muted sm">Le righe della griglia, una per riga (es. 8.00-9.00). Per le medie, le ore di lezione. Servono per le caselle vuote: quelle già compilate restano come sono.</p>
+  <div class="bz-fasce">${ORDINI.filter(o=>bzColsDi(b,o).length).map(o=>`<label>${NOMI_ORD[o]}<textarea rows="8" data-chg="bzFasce" data-o="${o}">${esc(f(o))}</textarea></label>`).join('')}</div></section>
+  <section class="block"><h3>Giorni</h3><label class="chk"><input type="checkbox" data-chg="bzSab" ${b.giorni.includes(6)?'checked':''}> Anche il sabato</label></section>
+  <section class="block"><h3>Elimina la bozza</h3><p class="muted sm">L'orario in uso non cambia. Prima conviene scaricare l'Excel.</p>${ui.conferma==='bzDel'?'<div class="btns"><button class="btn bad" data-act="bzDelOk">Elimina</button><button class="btn ghost" data-act="conf" data-v="">Annulla</button></div>':'<button class="btn" data-act="conf" data-v="bzDel">Elimina la bozza…</button>'}</section>`}
+/* ---------- azioni ---------- */
+function bzLibera(b,g,cols,a,z,escl){return !b.caselle.some(c=>c.id!==escl&&c.g===g&&c.a<z&&a<c.b&&c.col.some(x=>cols.includes(x)))}
+function bzDocAssicura(b,n){if(!b.docenti.some(d=>d.n===n)){b.docenti.push(bzDocDa(n));b.docenti.sort((x,y)=>x.n.localeCompare(y.n,'it'))}}
+function bzAggiungi(n){const b=BZ.b;const s=ui.bzSel;if(!s||!n)return;
+  bzMod(b=>{bzDocAssicura(b,n);let c=s.id?b.caselle.find(x=>x.id===s.id):null;
+    if(!c){const o=bzCol(b,s.col).ordine;const R=bzRighe(b,s.g,o);const r=R.find(x=>x.a===s.a);c={id:uid(),g:s.g,ordine:o,a:s.a,b:r?r.b:s.a+30,col:[s.col],doc:[]};b.caselle.push(c);ui.bzSel={id:c.id}}
+    if(!c.doc.some(x=>x.n===n))c.doc.push({n})})}
+function bzClick(A,el,v){const b=BZ.b;const d=el.dataset;
+  switch(A){
+    case 'bzStart':{if(v==='uso'){if(!S.docenti.length){toast('Non c\'è un orario in uso');return false}BZ.b=bzDaOrario(S,'Orario '+annoProssimo());}else BZ.b=bzVuota('Orario '+annoProssimo());BZ.b.inviata=true;BZ.undo=[];bzSalva();ui.bzSub='griglia';ui.bzSel=null;break}
+    case 'bzSub':ui.bzSub=v;ui.bzSel=null;break;
+    case 'bzG':ui.bzG=+v;ui.bzSel=null;break;
+    case 'bzO':ui.bzO=v;ui.bzSel=null;break;
+    case 'bzCell':ui.bzSel=d.i?{id:d.i}:{g:+d.g,col:d.c,a:+d.a};ui.bzNuovo=false;break;
+    case 'bzChiudi':ui.bzSel=null;break;
+    case 'bzUndo':{const x=BZ.undo.pop();if(x){BZ.b=JSON.parse(x);bzSalva();toast('Modifica annullata')}break}
+    case 'bzDocSu':bzMod(b=>{const c=b.caselle.find(x=>x.id===ui.bzSel.id);const i=c.doc.findIndex(x=>x.n===d.n);const [x]=c.doc.splice(i,1);c.doc.unshift(x)});break;
+    case 'bzDocVia':bzMod(b=>{const c=b.caselle.find(x=>x.id===ui.bzSel.id);c.doc=c.doc.filter(x=>x.n!==d.n);if(!c.doc.length){b.caselle=b.caselle.filter(x=>x!==c);ui.bzSel={g:c.g,col:c.col[0],a:c.a}}});break;
+    case 'bzAddNuovo':{const n=val('bzNuovoN').trim().replace(/\s+/g,' ');if(!n){toast('Scrivi il cognome');return false}ui.bzNuovo=false;bzAggiungi(n[0].toUpperCase()+n.slice(1));break}
+    case 'bzElimina':bzMod(b=>{const c=b.caselle.find(x=>x.id===ui.bzSel.id);b.caselle=b.caselle.filter(x=>x!==c);ui.bzSel=null});break;
+    case 'bzCopia':{const gs=[...document.querySelectorAll('.bzCopiaG:checked')].map(x=>+x.value);if(!gs.length){toast('Scegli i giorni');return false}
+      const c=b.caselle.find(x=>x.id===ui.bzSel.id);const no=gs.filter(g=>!bzLibera(b,g,c.col,c.a,c.b));const si=gs.filter(g=>!no.includes(g));
+      if(si.length)bzMod(b=>{for(const g of si)b.caselle.push({...JSON.parse(JSON.stringify(c)),id:uid(),g})});
+      toast((si.length?'Copiata in '+si.map(g=>G_BREVI[g]).join(', '):'')+(no.length?`${si.length?'. ':''}Non copiata in ${no.map(g=>G_BREVI[g]).join(', ')}: c'è già qualcosa`:''));break}
+    case 'bzVai':{if(d.c){const c=b.caselle.find(x=>x.id===d.c);if(c){ui.bzSub='griglia';ui.bzG=c.g;ui.bzO=c.ordine;ui.bzSel={id:c.id};setTimeout(()=>document.querySelector('.bz-c.sel')?.scrollIntoView({block:'center',inline:'center',behavior:'smooth'}),60);break}}
+      if(d.n){ui.bzSub='doc';ui.bzDocQ=d.n;setTimeout(()=>window.scrollTo(0,0),30)}break}
+    case 'bzDocAdd':{const n=val('bzDocNew').trim().replace(/\s+/g,' ');if(!n)return false;bzMod(b=>bzDocAssicura(b,n[0].toUpperCase()+n.slice(1)));break}
+    case 'bzVRm':bzMod(b=>{const x=b.docenti.find(y=>y.n===d.n);x.vincoli=x.vincoli.filter(v=>v.id!==d.i)});break;
+    case 'bzColMv':bzMod(b=>{const c=bzCol(b,d.c);const arr=bzColsDi(b,c.ordine);const i=arr.indexOf(c),k=i+(+v);if(k<0||k>=arr.length)return;const ia=b.colonne.indexOf(arr[i]),ib=b.colonne.indexOf(arr[k]);[b.colonne[ia],b.colonne[ib]]=[b.colonne[ib],b.colonne[ia]]});break;
+    case 'bzColAdd':{const o=d.o;const n=val('bzNC-'+o).trim();if(!n){toast('Scrivi il nome');return false}const id=d.v==='c'?o[0]+'-'+n.replace(/^Sez\.\s*/i,''):'s-'+o[0]+'-'+bzSlug(n);
+      if(b.colonne.some(c=>c.id===id)){toast('Esiste già');return false}bzMod(b=>{const last=bzColsDi(b,o).pop();const i=last?b.colonne.indexOf(last)+1:b.colonne.length;b.colonne.splice(i,0,{id,ordine:o,tipo:d.v,nome:n});if(!b.fasce[o]){b.fasce[o]=bzVuota('').fasce[o]}});break}
+    case 'bzColRm':{const n=b.caselle.filter(c=>c.col.includes(d.c)).length;if(n){ui.bzColRm={id:d.c,msg:`${bzNomeCol(b,d.c)} ha ${n} caselle compilate: verranno tolte.`};break}bzMod(b=>{b.colonne=b.colonne.filter(c=>c.id!==d.c)});break}
+    case 'bzColRmOk':{const id=ui.bzColRm.id;ui.bzColRm=null;bzMod(b=>{b.colonne=b.colonne.filter(c=>c.id!==id);b.caselle=b.caselle.map(c=>({...c,col:c.col.filter(x=>x!==id)})).filter(c=>c.col.length)});break}
+    case 'bzColRmNo':ui.bzColRm=null;break;
+    case 'bzDelOk':BZ.b=null;BZ.undo=[];ui.conferma=null;ui.bzSel=null;bzSalva();bzInvia();toast('Bozza eliminata');break;
+    case 'bzExport':{let F;try{bzLeggi(b)}catch(e){}bzExcel(b).then(blob=>salvaFile((b.nome||'Orario').replace(/[\\/:*?"<>|]+/g,'-')+'.xlsx',blob)).catch(e=>toast('Non riesco a creare l\'Excel: '+(e.message||e)));return false}
+    case 'bzUsa':{const ne=bzProblemi(b).filter(p=>p.liv==='err').length;let j;try{j=bzLeggi(b)}catch(e){toast(e.message);return false}
+      ui.orNuovo=preparaOrNuovo(j);ui.orWiz=null;XL_FILE=null;ui.tab='imp';ui.bzSel=null;if(ne)toast(`Attenzione: nella bozza ci sono ancora ${ne} errori`);setTimeout(()=>document.querySelector('[data-act=orApplica]')?.scrollIntoView({block:'center'}),80);break}
+    default:return false}
+  return true}
+function bzChange(C,t){const b=BZ.b;const d=t.dataset;
+  switch(C){
+    case 'bzFile':{const f=t.files[0];if(!f)return false;t.value='';toast('Leggo l\'orario…');
+      f.arrayBuffer().then(apriExcel).then(fogli=>{const sc=schemaAuto(fogli,S.opzioni.schemaOrario);if(!sc)throw new Error('Non riconosco il formato di questo Excel: caricalo prima da Impostazioni → Orario, dove puoi indicare tu le colonne');
+        const j=leggiConSchema(fogli[sc.f],sc,f.name);BZ.b=bzDaOrario(j,f.name.replace(/\.xlsx$/i,''));BZ.b.inviata=true;BZ.undo=[];bzSalva();ui.bzSub='griglia';render()}).catch(e=>toast(e.message||String(e)));return false}
+    case 'bzNome':bzMod(b=>{b.nome=t.value.trim()||'Orario'});return false;
+    case 'bzEvid':ui.bzEvid=t.value;break;
+    case 'bzDocQ':ui.bzDocQ=t.value;break;
+    case 'bzAddDoc':{if(t.value==='__nuovo'){ui.bzNuovo=true;break}if(t.value)bzAggiungi(t.value);break}
+    case 'bzSost':bzMod(b=>{const c=b.caselle.find(x=>x.id===ui.bzSel.id);const x=c.doc.find(y=>y.n===d.n);if(t.checked)x.s=true;else delete x.s});break;
+    case 'bzMat':bzMod(b=>{const c=b.caselle.find(x=>x.id===ui.bzSel.id);if(t.value)c.mat=t.value;else delete c.mat});break;
+    case 'bzMensa':bzMod(b=>{const c=b.caselle.find(x=>x.id===ui.bzSel.id);if(t.checked)c.mensa=true;else delete c.mensa});break;
+    case 'bzDa':case 'bzAl':{const c=b.caselle.find(x=>x.id===ui.bzSel.id);const a=C==='bzDa'?+t.value:c.a,z=C==='bzAl'?+t.value:c.b;
+      if(!bzLibera(b,c.g,c.col,a,z,c.id)){toast('In quell\'orario la colonna è già occupata: svuota prima l\'altra casella');break}bzMod(b=>{const x=b.caselle.find(y=>y.id===c.id);x.a=a;x.b=z});break}
+    case 'bzColTog':{const c=b.caselle.find(x=>x.id===ui.bzSel.id);const id=d.c;
+      if(t.checked){if(!bzLibera(b,c.g,[id],c.a,c.b,c.id)){toast(`${bzNomeCol(b,id)} è già occupata in quell'orario`);break}bzMod(b=>{const x=b.caselle.find(y=>y.id===c.id);x.col=b.colonne.filter(k=>k.id===id||x.col.includes(k.id)).map(k=>k.id)})}
+      else{if(c.col.length===1){toast('Serve almeno una colonna: per toglierla svuota la casella');break}bzMod(b=>{const x=b.caselle.find(y=>y.id===c.id);x.col=x.col.filter(k=>k!==id)})}break}
+    case 'bzOre':{const n=t.value.trim()?num(t.value):null;if(t.value.trim()&&(n==null||n<0)){toast('Scrivi un numero di ore');return false}bzMod(b=>{b.docenti.find(x=>x.n===d.n).ore=n});break}
+    case 'bzVAdd':{if(!t.value)return false;const tp=t.value;bzMod(b=>{const x=b.docenti.find(y=>y.n===d.n);x.vincoli=x.vincoli||[];x.vincoli.push({id:uid(),t:tp,...(tp==='maxOre'?{n:5}:tp==='maxBuche'?{n:1}:tp==='entra'?{ora:540}:tp==='esce'?{ora:780}:{})})});break}
+    case 'bzV':{const k=d.k;let v=t.value.trim();
+      if(['da','al','ora'].includes(k)){if(v===''){v=null}else{v=oraXl(v.replace(':','.'));if(v==null){toast('Scrivi l\'ora come 9.00');return false}}}
+      else if(k==='n'){v=v===''?null:num(v);}else if(k==='g'){v=v||null}
+      bzMod(b=>{const x=b.docenti.find(y=>y.n===d.n).vincoli.find(y=>y.id===d.i);if(v==null)delete x[k];else x[k]=v});break}
+    case 'bzColNome':{const n=t.value.trim();if(!n)return false;bzMod(b=>{bzCol(b,d.c).nome=n});break}
+    case 'bzFasce':{const o=d.o;const out=[];for(const l of t.value.split(/\n+/)){const m=l.trim().match(/^(\d{1,2}[.:,]\d{2})\s*[-–]\s*(\d{1,2}[.:,]\d{2})$/);if(!l.trim())continue;if(!m){toast('Riga non valida: '+l.trim()+' (scrivi 8.00-9.00)');return false}
+        const a=oraXl(m[1].replace(/[:,]/,'.')),z=oraXl(m[2].replace(/[:,]/,'.'));if(a==null||z==null||z<=a){toast('Riga non valida: '+l.trim());return false}out.push({a,b:z})}
+      bzMod(b=>{b.fasce[o]=out.sort((x,y)=>x.a-y.a)});break}
+    case 'bzSab':bzMod(b=>{b.giorni=t.checked?[1,2,3,4,5,6]:[1,2,3,4,5];if(!t.checked)b.caselle=b.caselle.filter(c=>c.g!==6)});break;
+    default:return false}
+  return true}
+function annoProssimo(){const t=new Date();const y=t.getMonth()>=7?t.getFullYear()+1:t.getFullYear();return `${y}/${String(y+1).slice(2)}`}
+
 const KEY='makeiteasy.v3';
 const $app=document.getElementById('app');
 const G_BREVI=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
@@ -300,6 +686,7 @@ const toT=m=>String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(
 const ov=(a,b,c,d)=>a<d&&c<b;
 const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const parseD=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+const num=v=>{const n=parseFloat(String(v).replace(',','.'));return isFinite(n)?n:null};
 const byName=(a,b)=>(a.nome||'').localeCompare(b.nome||'','it');
 function nextSchoolDay(d,sab){d=new Date(d);while(d.getDay()===0||(d.getDay()===6&&!sab))d.setDate(d.getDate()+1);return d}
 
@@ -429,7 +816,7 @@ function avvia(){
       st(sn);const arr=[],known={};sn.forEach(d=>{const x=d.data();arr.push(x);known[x.id]=JSON.stringify(x)});
       S[name]=arr;CLOUD.known[name]=known;CLOUD.collOk[name]=true;lset(KEY,JSON.stringify(S));rifaiBase();safeRender();
     },errore));
-    STORIA.lista=[];storiaAvvia(ref);
+    STORIA.lista=[];storiaAvvia(ref);CLOUD.dati.push(bzAscolta(ref));
     db.collection('utenti').doc(CLOUD.user.uid).get().then(d=>{const p=d.exists&&d.data().profilo;if(p){S.profilo=p;safeRender()}}).catch(()=>{});
   }else{
     CLOUD.dati.push(ref.collection('sostituzioni').where('data','>=',iso(new Date(Date.now()-864e5))).orderBy('data').limit(400).onSnapshot({includeMetadataChanges:true},sn=>{
@@ -963,7 +1350,7 @@ function leggiConSchema(sh,sc,nomeFile){
   const mCols=Object.keys(COL).map(Number).filter(j=>COL[j].ordine==='medie');
   if(mCols.length&&!Object.keys(sc.materie||{}).length)avvisi.push('Non trovo le colonne con le materie delle medie: le ore delle medie saranno senza materia.');
   const ignote=new Set();
-  const materia=(i,j)=>{const k=sc.materie?.[j];if(k==null)return null;const t=normH(sh.cella(i,k));const m=t.match(/^\d*([A-Z]+)$/);if(!m)return null;if(XL_MAT[m[1]])return XL_MAT[m[1]];ignote.add(m[1]);return null};
+  const materia=(i,j)=>{const k=sc.materie?.[j];if(k==null)return null;const t=normH(sh.cella(i,k));const m=t.match(/^\d*([A-Z]+)$/);if(!m)return null;if(XL_MAT[m[1]])return XL_MAT[m[1]];if(sc.matExtra?.[m[1]])return sc.matExtra[m[1]];ignote.add(m[1]);return null};
   const PART=['Di','De','Del','Della','Dal','Dalla','Lo','La','Le','Li','Da'];
   const nomi=t=>{const out=[];for(const part of t.split(/[\/,;+&]|\s-\s/)){const toks=[];for(const w of part.trim().split(/\s+/))if(w)toks.push(...w.replace(/([a-zà-ù])([A-Z])/g,'$1 $2').split(' '));
       for(let i=0;i<toks.length;i++){if(PART.includes(toks[i])&&i+1<toks.length){out.push(toks[i]+' '+toks[i+1]);i++}else out.push(toks[i])}}
@@ -990,7 +1377,7 @@ function leggiConSchema(sh,sc,nomeFile){
         let mat=null;if(o==='medie'&&inc.length===1){const ms=[];for(let i2=r0;i2<=r1;i2++){const m=materia(i2,inc[0]);if(m)ms.push(m)}if(ms.length)mat=ms.sort((x,y)=>ms.filter(z=>z===y).length-ms.filter(z=>z===x).length)[0]}
         const nn=nomi(t);
         nn.forEach((n,k)=>{const e={nome:n,g,ordine:o,a,b:bb,tipo,classi:[...new Set(inc.map(c=>COL[c].id))],label};if(mat)e.materia=mat;
-          if(tipo==='L'&&nn.length>1&&!(allc&&inc.length>1))e.comp={pos:k,con:nn.filter(x=>x!==n)};raw.push(e)})}}});
+          if(nn.length>1&&!(allc&&inc.length>1))e.comp={pos:k,con:nn.filter(x=>x!==n)};raw.push(e)})}}});
   if(senzaOra)avvisi.push(`${senzaOra} celle senza un orario accanto sono state saltate.`);
   if(ignote.size)avvisi.push('Materie non riconosciute (ore lasciate senza materia): '+[...ignote].join(', ')+'.');
   for(const e of raw)if(e.ordine==='medie'){e.a=XL_BELL[e.a]??e.a;e.b=XL_BELL[e.b]??e.b;if(e.a===595&&e.b===665&&e.tipo==='L')e.conta=55}
@@ -1005,7 +1392,8 @@ function leggiConSchema(sh,sc,nomeFile){
   if(docenti.length<3)throw new Error('Ho trovato solo '+docenti.length+' docenti: controlla le colonne indicate');
   const firma=[];for(let j=0;j<=sh.maxC;j++){const t=normH(sh.cella(heads[0],j));if(t&&!firma.includes(t))firma.push(t)}
   const ruoli={};for(const c of sc.cols)ruoli[c.h]={r:c.r,nome:c.nome||''};
-  return {tipo:'orario',fonte:`Orario da Excel (${String(nomeFile||'').replace(/\.xlsx$/i,'')}, caricato il ${new Date().toLocaleDateString('it-IT')})`,classi,docenti,avvisi,schema:{firma,ruoli}};
+  const colonne=[...sc.cols].sort((x,y)=>x.j-y.j).filter(c=>(c.r[0]==='c'||c.r[0]==='s')&&(c.nome||'').trim()).map(c=>{const o=c.r.slice(2);return c.r[0]==='c'?{id:o[0]+'-'+c.nome.trim(),ordine:o,tipo:'c',nome:c.nome.trim()}:{id:'s-'+o[0]+'-'+bzSlug(c.nome),ordine:o,tipo:'s',nome:c.nome}});{const vis={};for(const c of colonne){if(vis[c.id]){vis[c.id]++;c.id+='-'+vis[c.id]}else vis[c.id]=1}}
+  return {tipo:'orario',fonte:`Orario da Excel (${String(nomeFile||'').replace(/\.xlsx$/i,'')}, caricato il ${new Date().toLocaleDateString('it-IT')})`,classi,docenti,avvisi,schema:{firma,ruoli},colonne};
 }
 async function leggiExcelOrario(buf,nomeFile){const fogli=await apriExcel(buf);const sc=schemaAuto(fogli,typeof S!=='undefined'?S.opzioni?.schemaOrario:null);
   if(!sc)throw new Error('Non riconosco il formato: indica tu le colonne');return leggiConSchema(fogli[sc.f],sc,nomeFile)}
@@ -1056,12 +1444,12 @@ function preparaOrNuovo(j){const vecchi=new Set(S.docenti.map(d=>d.nome));const 
 function distanza(a,b){a=a.toLowerCase();b=b.toLowerCase();const d=Array.from({length:a.length+1},(_,i)=>[i]);for(let j=1;j<=b.length;j++)d[0][j]=j;
   for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[a.length][b.length]}
 function simile(n,elenco){let best=null,bd=9;for(const x of elenco){const k=distanza(n,x);if(k<bd){bd=k;best=x}}return bd<=Math.max(1,Math.floor(Math.min(n.length,best?.length||0)/4))?best:null}
-function applicaAlias(n,alias){if(!alias||!Object.keys(alias).length)return n;const per={};
+function applicaAlias(n,alias){if(!alias||!Object.keys(alias).length)return n;const per={};n={...n,docenti:n.docenti.map(d=>({...d,orario:d.orario.map(e=>e.comp?.con?{...e,comp:{...e.comp,con:e.comp.con.map(x=>alias[x]||x)}}:e)}))};
   for(const d of n.docenti){const nome=alias[d.nome]||d.nome;if(per[nome]){per[nome].orario.push(...d.orario.map(e=>({...e,id:e.id+'a'})));per[nome].ordini=[...new Set([...per[nome].ordini,...d.ordini])]}else per[nome]={...d,nome}}
   return {...n,docenti:Object.values(per)}}
 // confronto ora per ora con l'orario in uso: quanti docenti cambiano davvero
 function cambiOrario(n){const k=e=>[e.g,e.a,e.b,(e.classi||[]).join('+'),e.tipo,e.materia||''].join('|');const out=[];
-  for(const d of n.docenti){const o=S.docenti.find(x=>x.nome===d.nome);if(!o)continue;const A=new Set(o.orario.filter(e=>!/^(m|alt)/.test(e.id)).map(e=>k({...e,materia:e.materiaOrig??e.materia}))),B=new Set(d.orario.map(k));
+  for(const d of n.docenti){const o=S.docenti.find(x=>x.nome===d.nome);if(!o)continue;const A=new Set(o.orario.filter(e=>!/^(m|alt)/.test(e.id)).map(e=>k({...e,materia:e.materiaOrig??e.materia}))),B=new Set(d.orario.map(e=>k({...e,materia:e.materiaOrig??e.materia})));
     const piu=[...B].filter(x=>!A.has(x)).length,meno=[...A].filter(x=>!B.has(x)).length;if(piu||meno)out.push({nome:d.nome,piu,meno})}
   return out}
 
@@ -1200,8 +1588,8 @@ function render0(){
   if(CLOUD.on&&!CLOUD.ruolo){$app.innerHTML=vAttesa();return}
   if(CLOUD.ruolo==='user'){$app.innerHTML=vUser();return}
   $app.innerHTML=`<header class="top"><div class="top-in"><button class="brand" data-act="tab" data-v="imp" aria-label="Apri profilo">${avatarHTML()}<span><span class="eyebrow">Make it easy</span><span class="app">Sostituzioni</span><span class="hi">Ciao${S.profilo.nome?', '+esc(S.profilo.nome):''}${CLOUD.user?` · <span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span>`:''}</span></span></button>${vVaiApp()}</div>
-  <nav class="tabs" role="tablist">${[['sost','Sostituzioni'],['rie','Ore'],['doc','Docenti'],['storia','Cronologia'],['imp','Impostazioni']].map(([k,l])=>`<button role="tab" aria-selected="${ui.tab===k}" class="tab ${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</nav></header>
-  <main class="main">${ui.tab==='sost'?vSost():ui.tab==='rie'?vRie():ui.tab==='doc'?vDoc():ui.tab==='storia'?vStoria():vImp()}</main>${ui.copia?vCopia():''}`;
+  <nav class="tabs" role="tablist">${[['sost','Sostituzioni'],['rie','Ore'],['doc','Docenti'],['orario','Prepara orario'],['storia','Cronologia'],['imp','Impostazioni']].map(([k,l])=>`<button role="tab" aria-selected="${ui.tab===k}" class="tab ${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</nav></header>
+  <main class="main${ui.tab==='orario'?' wide':''}">${ui.tab==='sost'?vSost():ui.tab==='rie'?vRie():ui.tab==='doc'?vDoc():ui.tab==='storia'?vStoria():ui.tab==='orario'?vBozza():vImp()}</main>${ui.copia?vCopia():''}`;
   if(ui.copia){const t=document.getElementById('copyArea');t&&(t.focus(),t.select())}
 }
 
@@ -1442,7 +1830,7 @@ document.addEventListener('click',e=>{
     case 'rieXlsx':xlsxRiepilogo(ui.rieMese||iso(new Date()).slice(0,7));return;
     case 'dlXlsx':xlsxGiorno(ui.data);return;
     case 'rieCsv':scarica(`riepilogo-sostituzioni-${ui.rieMese||iso(new Date()).slice(0,7)}.csv`,'\ufeff'+rieTabella(ui.rieMese||iso(new Date()).slice(0,7),';'),'text/csv');return;
-    case 'orApplica':{PROSSIMO='Caricato il nuovo orario';if(ui.orNuovo.manuale&&ui.orNuovo.schema)S.opzioni.schemaOrario=ui.orNuovo.schema;XL_FILE=null;const al=aliasAttivi(ui.orNuovo);if(Object.keys(al).length)S.opzioni.alias={...(S.opzioni.alias||{}),...al};applicaOrario(applicaAlias(ui.orNuovo,al));}ui.orNuovo=null;save();toast('Orario aggiornato');break;
+    case 'orApplica':{PROSSIMO=ui.orNuovo.daBozza?'Usato l\'orario preparato nell\'app':'Caricato il nuovo orario';const daBz=ui.orNuovo.daBozza;if(ui.orNuovo.colonne?.length)S.opzioni.colonneOrario=ui.orNuovo.colonne;if(ui.orNuovo.manuale&&ui.orNuovo.schema)S.opzioni.schemaOrario=ui.orNuovo.schema;XL_FILE=null;const al=aliasAttivi(ui.orNuovo);if(Object.keys(al).length)S.opzioni.alias={...(S.opzioni.alias||{}),...al};applicaOrario(applicaAlias(ui.orNuovo,al));if(daBz&&BZ.b){const inv=Object.fromEntries(Object.entries(al).map(([k,v])=>[v,k]));for(const d of S.docenti){const x=BZ.b.docenti.find(y=>y.n===d.nome)||BZ.b.docenti.find(y=>y.n===inv[d.nome]);if(x){d.vincoli=JSON.parse(JSON.stringify(x.vincoli||[]));d.oreContratto=x.ore??null}}}}ui.orNuovo=null;save();toast('Orario aggiornato');break;
     case 'orAnnulla':ui.orNuovo=null;ui.orWiz=null;XL_FILE=null;break;
     case 'orWizApri':{if(!XL_FILE)break;const sc=ui.orNuovo?.sc;wzApri(XL_FILE.fogli,XL_FILE.nome,sc||null);break}
     case 'wzChiudi':ui.orWiz=null;if(!ui.orNuovo)XL_FILE=null;break;
@@ -1498,7 +1886,7 @@ document.addEventListener('click',e=>{
     case 'pwReset':{const em=(document.getElementById('lEmail')?.value||'').trim();if(!em){CLOUD.loginErr='Scrivi prima la tua email.';render();return}
       firebase.auth().sendPasswordResetEmail(em).then(()=>toast('Ti ho mandato un\'email per cambiare password')).catch(()=>toast('Non riesco a mandare l\'email: controlla l\'indirizzo'));return}
     case 'esci':{ui.conferma=null;const u=CLOUD.user?.uid;stacca(true);firebase.auth().signOut().then(()=>{lset(KEY,null);lset(LINKOLD,null);if(u)lset(SIDK+u,null);location.reload()});return}
-    default:return;
+    default:if(A.startsWith('bz')){if(!bzClick(A,b,v))return;break}return;
   }
   render();
 });
@@ -1554,7 +1942,7 @@ document.addEventListener('change',e=>{
     case 'bkTxt':ui.importTxt=t.value;break;
     case 'primoFile':{const file=t.files[0];if(!file)return;file.text().then(x=>{try{const n=JSON.parse(x);if(n.v!==3||!Array.isArray(n.docenti))throw 0;const p=S.profilo;PROSSIMO='Caricato l\'orario';S=n;if(p&&(p.nome||p.foto))S.profilo=p;save();toast('Orario caricato');render()}catch(_){toast('Questo file non è un orario di Make it easy')}});return}
     case 'bkFile':{const file=t.files[0];if(!file)return;file.text().then(x=>{ui.importTxt=x;ui.conferma='imp';render()});return}
-    default:return;
+    default:if(C.startsWith('bz')){if(!bzChange(C,t))return;break}return;
   }
   render();
 });
@@ -1568,6 +1956,7 @@ document.addEventListener('input',e=>{
 });
 
 rifaiBase();
+bzCarica();
 cloudInit();
 render();
 
