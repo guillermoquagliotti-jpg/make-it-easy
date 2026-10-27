@@ -223,6 +223,17 @@ textarea{resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:.8re
 .tabellone li.mia{background:var(--accent-soft);border-radius:8px;padding-inline:8px}
 .passi{white-space:pre-wrap;font-size:.72rem;color:var(--muted);margin:0;padding-bottom:10px;overflow-wrap:anywhere}
 .ok-t{color:var(--ok)}
+.storia{list-style:none;margin:0;padding:0}
+.storia .st-g{font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:700;padding:14px 0 4px}
+.storia .st{border-bottom:1px solid var(--line);padding:8px 0}
+.storia .st-h{display:grid;grid-template-columns:3.2em minmax(0,1fr) auto;gap:10px;align-items:center}
+.storia .st-h .t{font-variant-numeric:tabular-nums;font-weight:700}
+.storia .st-w{display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere}
+.storia .st-off .st-w b{text-decoration:line-through;color:var(--muted)}
+.storia details{margin:4px 0 0 calc(3.2em + 10px)}
+.storia .st-r{margin:4px 0;padding-left:18px;font-size:.88rem}
+.storia .note{margin:6px 0 0}
+@media (max-width:560px){.storia .st-h{grid-template-columns:3em minmax(0,1fr)}.storia .st-h>.btn,.storia .st-h>.btns{grid-column:2}}
 </style></head>
 <body>
 <div id="app"></div>
@@ -307,7 +318,7 @@ function seed(){
 let S=null;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||S.v!==3){const old=S;S=seed();if(old&&old.profilo)S.profilo=old.profilo}
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-function save(){S.mod=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+function save(){try{registra()}catch(e){console.error(e)}S.mod=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
   if(CLOUD.ruolo==='admin'){pushColl('assenze');pushColl('sostituzioni');cfgLater()}if(CLOUD.user)profLater()}
 
 /* ---------- Spazio condiviso della scuola (Firebase) ----------
@@ -389,12 +400,14 @@ function avvia(){
       if(!sn.exists){if(!sn.metadata.fromCache&&S.docenti.length)cfgNow();safeRender();return}
       if(sn.metadata.hasPendingWrites)return;
       const r=sn.data();if(r.stato!==CLOUD.cfgSent&&(!CLOUD.cfgMod||r.mod>=CLOUD.cfgMod)){try{const c=JSON.parse(r.stato);CFG.forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});CLOUD.cfgSent=r.stato;CLOUD.cfgMod=r.mod;lset(KEY,JSON.stringify(S))}catch(e){}}
+      rifaiBase();
       safeRender();
     },errore));
     for(const name of ['assenze','sostituzioni'])CLOUD.dati.push(ref.collection(name).where('data','>=',inizioAnno()).onSnapshot({includeMetadataChanges:true},sn=>{
       st(sn);const arr=[],known={};sn.forEach(d=>{const x=d.data();arr.push(x);known[x.id]=JSON.stringify(x)});
-      S[name]=arr;CLOUD.known[name]=known;CLOUD.collOk[name]=true;lset(KEY,JSON.stringify(S));safeRender();
+      S[name]=arr;CLOUD.known[name]=known;CLOUD.collOk[name]=true;lset(KEY,JSON.stringify(S));rifaiBase();safeRender();
     },errore));
+    STORIA.lista=[];storiaAvvia(ref);
     db.collection('utenti').doc(CLOUD.user.uid).get().then(d=>{const p=d.exists&&d.data().profilo;if(p){S.profilo=p;safeRender()}}).catch(()=>{});
   }else{
     CLOUD.dati.push(ref.collection('sostituzioni').where('data','>=',iso(new Date(Date.now()-864e5))).orderBy('data').limit(400).onSnapshot({includeMetadataChanges:true},sn=>{
@@ -407,6 +420,107 @@ function pushColl(name){
   for(const x0 of S[name]){const x=pulisci(name==='sostituzioni'?completa(x0):x0);const j=JSON.stringify(x);vivi.add(x.id);if(k[x.id]!==j){const nuova=k[x.id]===undefined;k[x.id]=j;col.doc(x.id).set(x).catch(errore);if(nuova&&name==='sostituzioni')notificaSost(x,'nuova')}}
   for(const id of Object.keys(k))if(!vivi.has(id)){let vecchia=null;try{vecchia=JSON.parse(k[id])}catch(e){}delete k[id];col.doc(id).delete().catch(errore);if(vecchia&&name==='sostituzioni')notificaSost(vecchia,'annullata')}
 }
+/* ---------- Cronologia e Annulla ----------
+   Ogni salvataggio di un ADMIN confronta i dati condivisi con quelli di prima e registra cosa è cambiato
+   (prima/dopo di ogni assenza, sostituzione, docente e impostazione). Annullare rimette i "prima".
+   In cloud: scuole/{sid}/storia/{id} (solo admin); senza cloud: sul dispositivo. */
+const STLOC='makeiteasy.storia';
+const STORIA={lista:[],ok:false,err:''};
+let BASE=null,PROSSIMO=null,ANNULLO=null;
+const stab=x=>x===undefined?'null':JSON.stringify(x,(k,v)=>v&&typeof v==='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((o,kk)=>(o[kk]=v[kk],o),{}):v);
+function istantanea(){
+  const m=(arr,f=x=>x)=>Object.fromEntries((arr||[]).map(x=>[x.id,stab(pulisci(f(x)))]));
+  return {cfg:Object.fromEntries(CFG.filter(k=>k!=='docenti').map(k=>[k,stab(S[k]??null)])),doc:m(S.docenti),assenze:m(S.assenze),sostituzioni:m(S.sostituzioni,completa)};
+}
+const rifaiBase=()=>{try{BASE=istantanea()}catch(e){BASE=null}};
+const puoRegistrare=()=>!CLOUD.on||CLOUD.ruolo==='admin';
+function diffBase(){
+  const now=istantanea();if(!BASE){BASE=now;return []}
+  const patch=[];for(const g of ['assenze','sostituzioni','doc','cfg']){const a=BASE[g],b=now[g];for(const id of new Set([...Object.keys(a),...Object.keys(b)])){const p=a[id]??null,d=b[id]??null;if(p!==d)patch.push({k:g+':'+id,p,d})}}
+  BASE=now;return patch;
+}
+const nomeDoc=id=>docente(id)?.nome||'';
+const dBreve=d=>d?parseD(d).toLocaleDateString('it-IT',{weekday:'short',day:'numeric',month:'short'}):'';
+const NOMI_CFG={criteri:'criteri di scelta',opzioni:'opzioni',classi:'classi',fonte:'orario caricato',v:'versione dei dati'};
+const NOMI_CAMPI={nome:'nome',orario:'orario',disp:'disponibilità',ordini:'ordini di scuola',sostPri:'sostegno',yExt:'ore eccedenti',specialista:'materia da specialista'};
+function descrivi(patch){
+  const R=[];
+  for(const x of patch){const [g]=x.k.split(':');const p=x.p&&JSON.parse(x.p),d=x.d&&JSON.parse(x.d);const o=d||p;
+    if(g==='sostituzioni'){const t=`${o.nS||nomeDoc(o.sostituto)} per ${o.nA||nomeDoc(o.assente)} · ${o.classe||''} ${o.a!=null?hm(o.a)+'–'+hm(o.b):''} · ${dBreve(o.data)}`;R.push(!p?'Sostituzione: '+t:!d?'Tolta sostituzione: '+t:'Modificata sostituzione: '+t)}
+    else if(g==='assenze'){const t=`${o.nome||nomeDoc(o.docente)} · ${dBreve(o.data)} · ${o.impegni?o.impegni.length+(o.impegni.length===1?' ora':' ore'):'tutta la giornata'}`;R.push(!p?'Assenza: '+t:!d?'Tolta assenza: '+t:'Modificata assenza: '+t)}
+    else if(g==='doc'){if(!p)R.push('Nuovo docente: '+(d.nome||'senza nome'));else if(!d)R.push('Eliminato docente: '+p.nome);
+      else{const c=Object.keys({...p,...d}).filter(k=>stab(p[k])!==stab(d[k])).map(k=>NOMI_CAMPI[k]||k);R.push(`Modificato ${d.nome||p.nome}: ${c.join(', ')}`)}}
+    else R.push('Modificate le impostazioni: '+(NOMI_CFG[x.k.slice(4)]||x.k.slice(4)))}
+  return R;
+}
+function storiaSalva(e){
+  if(CLOUD.on&&CLOUD.sid&&db){db.collection('scuole').doc(CLOUD.sid).collection('storia').doc(e.id).set(e).catch(err=>{STORIA.err=err.code||err.message;safeRender()});}
+  else{const i=STORIA.lista.findIndex(x=>x.id===e.id);if(i>=0)STORIA.lista[i]=e;else STORIA.lista.unshift(e);STORIA.lista=STORIA.lista.slice(0,150);lset(STLOC,JSON.stringify(STORIA.lista))}
+}
+function registra(){
+  if(!puoRegistrare()){PROSSIMO=null;ANNULLO=null;return}
+  const patch=diffBase();const tit=PROSSIMO,ann=ANNULLO;PROSSIMO=null;ANNULLO=null;if(!patch.length)return;
+  const righe=descrivi(patch);const ts=new Date().toISOString();
+  // modifiche a raffica allo stesso docente (es. disponibilità campo per campo): un'unica voce
+  const ult=STORIA.lista[0];
+  if(!tit&&!ann&&ult&&!ult.annullata&&!ult.annulla&&ult.chi===em()&&Date.now()-Date.parse(ult.ts)<180000&&patch.length===1&&patch[0].k.startsWith('doc:')&&patch[0].p&&patch[0].d){
+    let up=null;try{up=JSON.parse(ult.patch)}catch(e){}
+    if(up&&up.length===1&&up[0].k===patch[0].k){up[0].d=patch[0].d;const e={...ult,ts,patch:JSON.stringify(up),righe:descrivi(up)};e.titolo=e.righe[0];STORIA.lista[0]=e;storiaSalva(e);return}
+  }
+  const e={id:Date.now().toString(36)+uid(),ts,chi:em(),nome:S.profilo.nome||'',titolo:tit||(righe[0]+(righe.length>1?` (e altre ${righe.length-1} modifiche)`:'')),righe:righe.slice(0,40),piu:Math.max(0,righe.length-40),patch:JSON.stringify(patch),annullata:null,annulla:ann||null};
+  STORIA.lista.unshift(e);storiaSalva(e);
+}
+function applica(patch,verso){
+  const arr={doc:'docenti',assenze:'assenze',sostituzioni:'sostituzioni'};
+  for(const x of patch){const [g,...r]=x.k.split(':');const id=r.join(':');const v=verso==='prima'?x.p:x.d;
+    if(g==='cfg'){S[id]=v==null?null:JSON.parse(v);continue}
+    const L=S[arr[g]];const i=L.findIndex(o=>o.id===id);
+    if(v==null){if(i>=0)L.splice(i,1)}else{const o=JSON.parse(v);if(i>=0)L[i]=o;else L.push(o)}}
+}
+function annulla(id){
+  const e=STORIA.lista.find(x=>x.id===id);if(!e||e.annullata)return;
+  let patch=null;try{patch=JSON.parse(e.patch)}catch(_){}if(!patch){toast('Questa voce non si può annullare');return}
+  diffBase();// eventuali modifiche non ancora registrate
+  const now=istantanea();
+  const cambiati=patch.filter(x=>{const [g,...r]=x.k.split(':');return (now[g][r.join(':')]??null)!==x.d});
+  if(cambiati.length){ui.conferma=null;ui.stBlocco=e.id;render();return}
+  applica(patch,'prima');
+  // niente sostituzioni rimaste senza la loro assenza (es. annullando un'assenza già coperta)
+  {const ha=x=>S.assenze.some(a=>a.data===x.data&&a.docente===x.assente);S.sostituzioni=S.sostituzioni.filter(x=>x.legato||ha(x));const ids=new Set(S.sostituzioni.map(x=>x.id));S.sostituzioni=S.sostituzioni.filter(x=>!x.legato||ids.has(x.legato))}
+  PROSSIMO=(e.annulla&&/^Annullato/.test(e.titolo)?'Rifatto: ':'Annullato: ')+e.titolo.replace(/^(Annullato|Rifatto): /,'');ANNULLO=e.id;
+  const segna={...e,annullata:{ts:new Date().toISOString(),chi:em(),nome:S.profilo.nome||''}};
+  const i=STORIA.lista.findIndex(x=>x.id===e.id);if(i>=0)STORIA.lista[i]=segna;storiaSalva(segna);
+  if(e.annulla){const o=STORIA.lista.find(x=>x.id===e.annulla);if(o){const r={...o,annullata:null};STORIA.lista[STORIA.lista.indexOf(o)]=r;storiaSalva(r)}}
+  ui.conferma=null;ui.stBlocco=null;save();toast(e.annulla&&/^Annullato/.test(e.titolo)?'Rifatto':'Annullato');
+}
+function vStoria(){
+  const rif=e=>!!e.annulla&&/^Annullato/.test(e.titolo);
+  const L=STORIA.lista;const chi=e=>e.chi===em()?'tu':(e.nome||e.chi.split('@')[0]);
+  const ora=t=>new Date(t).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});
+  const gg=t=>{const d=iso(new Date(t));return d===iso(new Date())?'Oggi':d===iso(new Date(Date.now()-864e5))?'Ieri':giornoLungo(d)};
+  let h=`<section class="block"><div class="block-h"><h2>Cronologia</h2></div><p class="muted sm">Tutto quello che gli amministratori hanno fatto sui dati, dal più recente. “Annulla” rimette le cose come prima di quell'azione: le sostituzioni, le ore e i messaggi si aggiornano subito, anche sugli altri dispositivi.</p>`;
+  if(STORIA.err==='permission-denied')h+=`<p class="note warn">La cronologia non si salva online: vanno aggiornate le regole del database in Firebase (manca la parte “storia”).</p>`;
+  else if(STORIA.err)h+=`<p class="note warn">Cronologia non disponibile: ${esc(STORIA.err)}</p>`;
+  if(CLOUD.on&&!STORIA.ok&&!STORIA.err)h+='<p class="muted">Carico…</p>';
+  else if(!L.length)h+='<p class="empty">Ancora nessuna azione registrata. Da adesso in poi ogni modifica compare qui.</p>';
+  let giorno='';h+='<ul class="storia">';
+  for(const e of L){const g=gg(e.ts);if(g!==giorno){giorno=g;h+=`<li class="st-g">${esc(g)}</li>`}
+    const bloc=ui.stBlocco===e.id,conf=ui.conferma==='st:'+e.id;
+    h+=`<li class="st ${e.annullata?'st-off':''}"><div class="st-h"><span class="t">${ora(e.ts)}</span><span class="st-w"><b>${esc(e.titolo)}</b><span class="muted sm">${esc(chi(e))}${e.annullata?` · annullata da ${esc(e.annullata.chi===em()?'te':(e.annullata.nome||e.annullata.chi.split('@')[0]))} alle ${ora(e.annullata.ts)}`:''}</span></span>
+      ${e.annullata||!e.patch?'':conf?`<span class="btns"><button class="btn bad sm" data-act="stAnnulla" data-v="${e.id}">${rif(e)?'Sì, rifai':'Sì, annulla'}</button><button class="btn ghost sm" data-act="conf" data-v="">No</button></span>`:`<button class="btn sm" data-act="conf" data-v="st:${e.id}">${rif(e)?'Rifai':'Annulla'}</button>`}</div>
+      ${e.righe.length>1||e.piu?`<details><summary class="muted sm">Dettagli (${e.righe.length+(e.piu||0)})</summary><ul class="st-r">${e.righe.map(r=>`<li>${esc(r)}</li>`).join('')}${e.piu?`<li>… e altre ${e.piu}</li>`:''}</ul></details>`:''}
+      ${bloc?`<p class="note warn">Non posso annullarla: alcuni di questi dati sono stati cambiati dopo. Annulla prima le azioni più recenti che li toccano.</p>`:''}</li>`}
+  return h+'</ul></section>';
+}
+function storiaAvvia(ref){
+  STORIA.ok=false;STORIA.err='';
+  CLOUD.dati.push(ref.collection('storia').orderBy('ts','desc').limit(150).onSnapshot(sn=>{const a=[];sn.forEach(d=>a.push(d.data()));STORIA.lista=a;STORIA.ok=true;STORIA.err='';safeRender()},e=>{STORIA.err=e.code||e.message;safeRender()}));
+  // pulizia: le voci più vecchie di 6 mesi
+  const lim=new Date(Date.now()-183*864e5).toISOString();
+  ref.collection('storia').where('ts','<',lim).limit(100).get().then(q=>q.forEach(d=>d.ref.delete().catch(()=>{}))).catch(()=>{});
+}
+try{const l=JSON.parse(lget(STLOC)||'[]');if(Array.isArray(l))STORIA.lista=l}catch(e){}
+
 /* ---------- Notifiche (Web Push tramite il servizio Cloudflare) ---------- */
 const VAPID='BPuCYQHH_TMjMwpjDorGuxCSMyvTomv749JMOnRATtnx3qxA2NLqxr4Mlx2baKP_BleKBq2K4BKXtbVx_Rc6bBQ';
 const ub64u=s=>{s=s.replace(/-/g,'+').replace(/_/g,'/');s+='='.repeat((4-s.length%4)%4);return Uint8Array.from(atob(s),c=>c.charCodeAt(0))};
@@ -822,8 +936,8 @@ function render0(){
   if(CLOUD.on&&!CLOUD.ruolo){$app.innerHTML=vAttesa();return}
   if(CLOUD.ruolo==='user'){$app.innerHTML=vUser();return}
   $app.innerHTML=`<header class="top"><div class="top-in"><button class="brand" data-act="tab" data-v="imp" aria-label="Apri profilo">${avatarHTML()}<span><span class="eyebrow">Make it easy</span><span class="app">Sostituzioni</span><span class="hi">Ciao${S.profilo.nome?', '+esc(S.profilo.nome):''}${CLOUD.user?` · <span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span>`:''}</span></span></button></div>
-  <nav class="tabs" role="tablist">${[['sost','Sostituzioni'],['rie','Ore'],['doc','Docenti'],['imp','Impostazioni']].map(([k,l])=>`<button role="tab" aria-selected="${ui.tab===k}" class="tab ${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</nav></header>
-  <main class="main">${ui.tab==='sost'?vSost():ui.tab==='rie'?vRie():ui.tab==='doc'?vDoc():vImp()}</main>${ui.copia?vCopia():''}`;
+  <nav class="tabs" role="tablist">${[['sost','Sostituzioni'],['rie','Ore'],['doc','Docenti'],['storia','Cronologia'],['imp','Impostazioni']].map(([k,l])=>`<button role="tab" aria-selected="${ui.tab===k}" class="tab ${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</nav></header>
+  <main class="main">${ui.tab==='sost'?vSost():ui.tab==='rie'?vRie():ui.tab==='doc'?vDoc():ui.tab==='storia'?vStoria():vImp()}</main>${ui.copia?vCopia():''}`;
   if(ui.copia){const t=document.getElementById('copyArea');t&&(t.focus(),t.select())}
 }
 
@@ -1055,10 +1169,10 @@ document.addEventListener('click',e=>{
     case 'rieXlsx':xlsxRiepilogo(ui.rieMese||iso(new Date()).slice(0,7));return;
     case 'dlXlsx':xlsxGiorno(ui.data);return;
     case 'rieCsv':scarica(`riepilogo-sostituzioni-${ui.rieMese||iso(new Date()).slice(0,7)}.csv`,'\ufeff'+rieTabella(ui.rieMese||iso(new Date()).slice(0,7),';'),'text/csv');return;
-    case 'orApplica':applicaOrario(ui.orNuovo);ui.orNuovo=null;save();toast('Orario aggiornato');break;
+    case 'orApplica':PROSSIMO='Caricato il nuovo orario';applicaOrario(ui.orNuovo);ui.orNuovo=null;save();toast('Orario aggiornato');break;
     case 'orAnnulla':ui.orNuovo=null;break;
     case 'nuovoAnno':{(async()=>{const ok=await salvaFile(`archivio-sostituzioni-${iso(new Date())}.json`,new Blob([archivio()],{type:'application/json'}));
-      if(ok===false){toast('Archivio non salvato: non cancello niente');return}S.assenze=[];S.sostituzioni=[];ui.conferma=null;save();toast('Anno chiuso: carica il nuovo orario');render()})();return}
+      if(ok===false){toast('Archivio non salvato: non cancello niente');return}PROSSIMO='Chiuso l\'anno scolastico (assenze e sostituzioni archiviate)';S.assenze=[];S.sostituzioni=[];ui.conferma=null;save();toast('Anno chiuso: carica il nuovo orario');render()})();return}
     case 'riprovaCarico':CLOUD.bloccata=false;CLOUD.stato='carico';CLOUD.err='';stacca(true);if(CLOUD.user)lset(SIDK+CLOUD.user.uid,null);render();trova();cane();return;
     case 'senzaCache':lset('makeiteasy.noPersist','1');if(CLOUD.user)lset(SIDK+CLOUD.user.uid,null);location.reload();return;
     case 'attivaPush':attivaNotifiche();return;
@@ -1089,14 +1203,15 @@ document.addEventListener('click',e=>{
       const e={id:'m'+uid(),g:a.g,ordine:a.tipo==='L'?a.ordine:(d.ordini[0]||'medie'),a:toMin(a.a),b:toMin(a.b),tipo:a.tipo,classi:a.tipo==='L'&&cl?[cl]:[],label:a.tipo==='L'&&cl?classe(cl).nome:TIPO_E[a.tipo]};
       d.orario.push(e);if(a.tipo==='L'&&!d.ordini.includes(a.ordine))d.ordini.push(a.ordine);ui.add=null;save();toast('Ora aggiunta');break}
     case 'eDel':{const d=docente(ui.doc);d.orario=d.orario.filter(x=>x.id!==v);S.sostituzioni=S.sostituzioni.filter(s=>!(s.assente===d.id&&s.impegno===v));save();break}
-    case 'conf':ui.conferma=v||null;break;
+    case 'conf':ui.conferma=v||null;ui.stBlocco=null;break;
+    case 'stAnnulla':annulla(v);break;
     case 'color':S.profilo.accento=v;save();break;
     case 'critMv':{const i=+b.dataset.i,j=i+(+b.dataset.d);[S.criteri[i],S.criteri[j]]=[S.criteri[j],S.criteri[i]];save();break}
     case 'bkCopy':copia(JSON.stringify(S),'Backup copiato');return;
     case 'bkDl':scarica(`make-it-easy-backup-${iso(new Date())}.json`,JSON.stringify(S),'application/json');return;
-    case 'bkImp':{try{const n=JSON.parse(ui.importTxt);if(n.v!==3||!Array.isArray(n.docenti))throw 0;S=n;ui.importTxt='';ui.conferma=null;save();toast('Backup importato')}
+    case 'bkImp':{try{const n=JSON.parse(ui.importTxt);if(n.v!==3||!Array.isArray(n.docenti))throw 0;PROSSIMO='Importato un backup';S=n;ui.importTxt='';ui.conferma=null;save();toast('Backup importato')}
       catch(_){ui.conferma=null;toast('Questo testo non è un backup di Make it easy')}break}
-    case 'reset':{const p=S.profilo;S=seed();S.profilo=p;ui.conferma=null;ui.doc=null;ui.form=null;save();toast('Orario ripristinato');break}
+    case 'reset':{PROSSIMO='Ripristinato l\'orario iniziale';const p=S.profilo;S=seed();S.profilo=p;ui.conferma=null;ui.doc=null;ui.form=null;save();toast('Orario ripristinato');break}
     case 'closeCopy':ui.copia=null;break;
     case 'pwReset':{const em=(document.getElementById('lEmail')?.value||'').trim();if(!em){CLOUD.loginErr='Scrivi prima la tua email.';render();return}
       firebase.auth().sendPasswordResetEmail(em).then(()=>toast('Ti ho mandato un\'email per cambiare password')).catch(()=>toast('Non riesco a mandare l\'email: controlla l\'indirizzo'));return}
@@ -1145,7 +1260,7 @@ document.addEventListener('change',e=>{
     case 'critOn':S.criteri[+t.dataset.i].on=t.checked;save();break;
     case 'opt':S.opzioni[t.dataset.v]=t.checked;save();break;
     case 'bkTxt':ui.importTxt=t.value;break;
-    case 'primoFile':{const file=t.files[0];if(!file)return;file.text().then(x=>{try{const n=JSON.parse(x);if(n.v!==3||!Array.isArray(n.docenti))throw 0;const p=S.profilo;S=n;if(p&&(p.nome||p.foto))S.profilo=p;save();toast('Orario caricato');render()}catch(_){toast('Questo file non è un orario di Make it easy')}});return}
+    case 'primoFile':{const file=t.files[0];if(!file)return;file.text().then(x=>{try{const n=JSON.parse(x);if(n.v!==3||!Array.isArray(n.docenti))throw 0;const p=S.profilo;PROSSIMO='Caricato l\'orario';S=n;if(p&&(p.nome||p.foto))S.profilo=p;save();toast('Orario caricato');render()}catch(_){toast('Questo file non è un orario di Make it easy')}});return}
     case 'bkFile':{const file=t.files[0];if(!file)return;file.text().then(x=>{ui.importTxt=x;ui.conferma='imp';render()});return}
     default:return;
   }
@@ -1160,6 +1275,7 @@ document.addEventListener('input',e=>{
     if(el)el.innerHTML=docRows([...S.docenti].filter(d=>(!ui.fOrd||d.ordini.includes(ui.fOrd))&&(!q||d.nome.toLowerCase().includes(q))).sort(byName))}
 });
 
+rifaiBase();
 cloudInit();
 render();
 
