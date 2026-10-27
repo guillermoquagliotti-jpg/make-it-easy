@@ -319,7 +319,7 @@ let S=null;try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
 if(!S||S.v!==3){const old=S;S=seed();if(old&&old.profilo)S.profilo=old.profilo}
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 function save(){try{registra()}catch(e){console.error(e)}S.mod=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
-  if(CLOUD.ruolo==='admin'){pushColl('assenze');pushColl('sostituzioni');cfgLater()}if(CLOUD.user)profLater()}
+  if(CLOUD.ruolo==='admin'){pushColl('assenze');pushColl('sostituzioni');cfgLater();syncMembriLater()}if(CLOUD.user)profLater()}
 
 /* ---------- Spazio condiviso della scuola (Firebase) ----------
    scuole/{sid}                 nome, membri {email:{ruolo,docente}}, emails[]
@@ -387,6 +387,7 @@ function attacca(sid){
     const d=sn.data();CLOUD.scuola=d;const r=d.membri?.[em()]?.ruolo||null;passo('Spazio trovato, ruolo: '+(r||'nessuno'));CLOUD.bloccata=false;
     if(!r){fuori('La tua email non è nell\'elenco della scuola. Chiedi a chi gestisce le sostituzioni di aggiungerti.');return}
     if(r!==CLOUD.ruolo){CLOUD.ruolo=r;avvia()}
+    if(r==='admin')syncMembriLater();
     safeRender();
   },e=>{if(e.code==='permission-denied'){if(!CLOUD.ricercato){CLOUD.ricercato=true;passo('Accesso negato allo spazio salvato: lo cerco di nuovo');stacca(true);lset(SIDK+CLOUD.user.uid,null);CLOUD.sid=null;CLOUD.ruolo=null;trova();return}fuori('La tua email non è nell\'elenco della scuola. Chiedi a chi gestisce le sostituzioni di aggiungerti.')}else errore(e)});
 }
@@ -400,7 +401,7 @@ function avvia(){
       if(!sn.exists){if(!sn.metadata.fromCache&&S.docenti.length)cfgNow();safeRender();return}
       if(sn.metadata.hasPendingWrites)return;
       const r=sn.data();if(r.stato!==CLOUD.cfgSent&&(!CLOUD.cfgMod||r.mod>=CLOUD.cfgMod)){try{const c=JSON.parse(r.stato);CFG.forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});CLOUD.cfgSent=r.stato;CLOUD.cfgMod=r.mod;lset(KEY,JSON.stringify(S))}catch(e){}}
-      rifaiBase();
+      rifaiBase();CLOUD.cfgOk=true;syncMembriLater();
       safeRender();
     },errore));
     for(const name of ['assenze','sostituzioni'])CLOUD.dati.push(ref.collection(name).where('data','>=',inizioAnno()).onSnapshot({includeMetadataChanges:true},sn=>{
@@ -584,6 +585,20 @@ function cfgNow(){
   db.collection('scuole').doc(CLOUD.sid).collection('dati').doc('config').set({stato:cs,mod}).catch(errore);
 }
 let profT;function profLater(){clearTimeout(profT);profT=setTimeout(()=>{if(db&&CLOUD.user)db.collection('utenti').doc(CLOUD.user.uid).set({profilo:S.profilo},{merge:true}).catch(()=>{})},800)}
+/* Classi del docente, copiate accanto alla sua email: l'app Classi le usa per creare le classi del collega */
+function classiDi(id){const d=docente(id);if(!d)return [];const out=new Map();
+  for(const e of d.orario){if(e.tipo!=='L'||/potenziamento/i.test(e.materia||''))continue;
+    for(const cid of (e.classi&&e.classi.length?e.classi:[null])){const c=cid&&classe(cid);const nome=c?c.nome:e.label;if(!nome)continue;const k=(c?c.id:nome)+'|'+(e.materia||'');
+      if(!out.has(k))out.set(k,{nome,ordine:c?.ordine||e.ordine||'',materia:e.materia||''})}}
+  const ord={infanzia:0,primaria:1,medie:2};return [...out.values()].sort((a,b)=>(ord[a.ordine]??3)-(ord[b.ordine]??3)||a.nome.localeCompare(b.nome,'it')||a.materia.localeCompare(b.materia,'it'))}
+let syncT;function syncMembriLater(){clearTimeout(syncT);syncT=setTimeout(syncMembri,1500)}
+function syncMembri(){
+  if(!CLOUD.sid||CLOUD.ruolo!=='admin'||!CLOUD.cfgOk||!CLOUD.scuola?.membri||!S.docenti.length)return;
+  const m=JSON.parse(JSON.stringify(CLOUD.scuola.membri));let cambia=false;
+  for(const [e,r] of Object.entries(m)){const want=r.docente&&docente(r.docente)?classiDi(r.docente):null;
+    if(JSON.stringify(r.classi||null)!==JSON.stringify(want)){if(want)r.classi=want;else delete r.classi;cambia=true}}
+  if(cambia)db.collection('scuole').doc(CLOUD.sid).update({membri:m}).catch(()=>{});
+}
 async function salvaMembri(membri){
   const ref=db.collection('scuole').doc(CLOUD.sid);
   await ref.update({membri,emails:Object.keys(membri)});
