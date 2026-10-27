@@ -267,9 +267,9 @@ const G_BREVI=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
 const G_LUNGHI=['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
 const ORDINI=['infanzia','primaria','medie'];
 const NOMI_ORD={infanzia:'Infanzia',primaria:'Primaria',medie:'Medie'};
-const TIPO_C={C:'Già in classe',S:'Tolto da una compresenza in primaria',K:'Spostamento a catena',D:'A disposizione',P:'Lascia il potenziamento',R:'Recupero ore',B:'Ora buca, è a scuola',G:'Ora eccedente',F:'Non è a scuola, si può chiamare'};
+const TIPO_C={C:'Già in classe',S:'Tolto da una compresenza in primaria o dal sostegno',K:'Spostamento a catena',D:'A disposizione',P:'Lascia il potenziamento',R:'Recupero ore',B:'Ora buca, è a scuola',G:'Ora eccedente',F:'Non è a scuola, si può chiamare'};
 const TIPO_E={D:'A disposizione',P:'Potenziamento',R:'Recupero ore',X:'Non spostabile'};
-const CRIT={C:'Docente già in classe (compresenza)',D:'Ore a disposizione',B:'Ha un\'ora buca (è già a scuola)',abituale:'Da fuori: prima i preferiti, poi gli occasionali, per ultimi quelli in extremis',P:'Docente in potenziamento',S:'Tolto da una compresenza in primaria',R:'Recupero permessi',G:'È a scuola prima o dopo (ora eccedente)',classe:'Conosce già la classe',meno:'Ha fatto meno sostituzioni'};
+const CRIT={C:'Docente già in classe (compresenza)',D:'Ore a disposizione',B:'Ha un\'ora buca (è già a scuola)',abituale:'Da fuori: prima i preferiti, poi gli occasionali, per ultimi quelli in extremis',P:'Docente in potenziamento',S:'Tolto da una compresenza in primaria o dal sostegno',R:'Recupero permessi',G:'È a scuola prima o dopo (ora eccedente)',classe:'Conosce già la classe',meno:'Ha fatto meno sostituzioni'};
 const SWATCH=[['Lilla','#9a7bd6'],['Glicine','#7d6fc4'],['Malva','#b77aa8'],['Salvia','#5e9a7a'],['Cielo','#4f8fc0'],['Pesca','#d98a5f']];
 let TOP=false;try{TOP=window.self===window.top}catch(e){}
 
@@ -404,7 +404,7 @@ function avvia(){
       if(!sn.exists){if(!sn.metadata.fromCache&&S.docenti.length)cfgNow();safeRender();return}
       if(sn.metadata.hasPendingWrites)return;
       const r=sn.data();if(r.stato!==CLOUD.cfgSent&&(!CLOUD.cfgMod||r.mod>=CLOUD.cfgMod)){try{const c=JSON.parse(r.stato);CFG.forEach(k=>{if(c[k]!==undefined)S[k]=c[k]});CLOUD.cfgSent=r.stato;CLOUD.cfgMod=r.mod;lset(KEY,JSON.stringify(S))}catch(e){}}
-      rifaiBase();CLOUD.cfgOk=true;syncMembriLater();
+      rifaiBase();CLOUD.cfgOk=true;migraSostegno();syncMembriLater();
       safeRender();
     },errore));
     for(const name of ['assenze','sostituzioni'])CLOUD.dati.push(ref.collection(name).where('data','>=',inizioAnno()).onSnapshot({includeMetadataChanges:true},sn=>{
@@ -590,7 +590,7 @@ function cfgNow(){
 let profT;function profLater(){clearTimeout(profT);profT=setTimeout(()=>{if(db&&CLOUD.user)db.collection('utenti').doc(CLOUD.user.uid).set({profilo:S.profilo},{merge:true}).catch(()=>{})},800)}
 /* Classi del docente, copiate accanto alla sua email: l'app Classi le usa per creare le classi del collega */
 function classiDi(id){const d=docente(id);if(!d)return [];const out=new Map();
-  for(const e of d.orario){if(e.tipo!=='L'||/potenziamento/i.test(e.materia||'')||/mensa|interscuola|pre-?\s?scuola|dopo-?\s?scuola|post-?\s?scuola/i.test(e.label||''))continue;
+  for(const e of d.orario){if(e.tipo!=='L'||isSostegno(e)||/potenziamento/i.test(e.materia||'')||/mensa|interscuola|pre-?\s?scuola|dopo-?\s?scuola|post-?\s?scuola/i.test(e.label||''))continue;
     if(e.ordine==='medie'&&!e.materia)continue;// alle medie le lezioni hanno sempre la materia: senza, è un'ora di altro tipo
     const mat=e.materia||(d.specialista||'');
     for(const cid of (e.classi&&e.classi.length?e.classi:[null])){const c=cid&&classe(cid);const nome=c?c.nome:e.label;if(!nome)continue;const k=(c?c.id:nome)+'|'+mat;
@@ -598,6 +598,13 @@ function classiDi(id){const d=docente(id);if(!d)return [];const out=new Map();
   const ord={infanzia:0,primaria:1,medie:2};return [...out.values()].sort((a,b)=>(ord[a.ordine]??3)-(ord[b.ordine]??3)||a.nome.localeCompare(b.nome,'it')||a.materia.localeCompare(b.materia,'it'))}
 // orario settimanale del docente (tutte le sue ore, anche mensa e disposizione) per la pagina "Oggi" di Classi
 function oreDi(id){const d=docente(id);if(!d)return [];return d.orario.filter(e=>e.tipo).map(e=>({g:e.g,a:e.a,b:e.b,tipo:e.tipo,label:e.label||'',materia:e.materia||(e.tipo==='L'&&e.ordine!=='medie'?d.specialista||'':''),ordine:e.ordine||'',classi:(e.classi||[]).map(cid=>classe(cid)?.nome).filter(Boolean)})).sort((x,y)=>x.g-y.g||x.a-y.a)}
+function migraSostegno(){
+  if(CLOUD.ruolo!=='admin'||!S.opzioni||S.opzioni.migSost1)return;
+  const d=S.docenti.find(x=>(x.nome||'').toLowerCase()==='quagliotti');S.opzioni.migSost1=1;
+  const es=d?d.orario.filter(e=>e.tipo==='L'&&e.ordine==='medie'&&(e.classi||[]).length===1&&/1A/.test(classe(e.classi[0])?.nome||'')&&/^(italiano|arte)$/i.test(e.materia||'')):[];
+  es.forEach(e=>{e.materiaOrig=e.materia;e.materia='Sostegno'});
+  PROSSIMO=es.length?`Quagliotti: ${es.length} ore in 1A (Italiano e Arte) segnate come sostegno`:null;save();
+}
 let syncT;function syncMembriLater(){clearTimeout(syncT);syncT=setTimeout(syncMembri,1500)}
 function syncMembri(){
   if(!CLOUD.sid||CLOUD.ruolo!=='admin'||!CLOUD.cfgOk||!CLOUD.scuola?.membri||!S.docenti.length)return;
@@ -656,6 +663,7 @@ const contaSost=id=>S.sostituzioni.filter(s=>s.sostituto===id).length;
 const giorno=data=>parseD(data).getDay();
 const entryById=(d,id)=>d&&d.orario.find(e=>e.id===id);
 const occupa=e=>e.tipo==='L'||e.tipo==='X';
+const isSostegno=e=>/^sostegno$/i.test(e.materia||'');
 const stessoGruppo=(e,f)=>e.ordine===f.ordine&&(e.classi.some(c=>f.classi.includes(c))||(e.label===f.label&&!e.classi.length));
 function labelE(e){return e.label+(e.materia?' · '+e.materia:'')}
 const fineLez=g=>toMin(S.opzioni.fine?.[g]||'23:59');
@@ -687,7 +695,7 @@ function scoperte(data){
   for(const x of S.assenze.filter(a=>a.data===data)){
     const d=docente(x.docente);if(!d)continue;
     for(const e of d.orario){
-      if(e.g!==g||e.tipo!=='L'||!S.opzioni.coordino.includes(e.ordine))continue;
+      if(e.g!==g||e.tipo!=='L'||isSostegno(e)||!S.opzioni.coordino.includes(e.ordine))continue;// il sostegno non si copre: in classe c'è il docente della materia
       if(x.impegni&&!x.impegni.includes(e.id))continue;
       out.push({key:data+'|'+e.id,data,e,ordine:e.ordine,a:e.a,b:e.b,assente:d.id,fac:facoltativo(e),presenti:presentiIn(e,data,d.id)});
     }
@@ -759,7 +767,7 @@ function candidati(sc){
       else if(abil&&busy.every(e=>e.tipo==='L'&&e.materia==='Potenziamento')){t='P';
         const vuote=busy.filter(e=>!S.docenti.some(o=>o.id!==d.id&&copre(o,g,e)));
         var lascia=vuote.length>0;info=vuote.length?vuote.map(e=>e.label).join(', ')+' resterebbe senza docente':'in '+busy.map(e=>e.label).join(', ')}
-      else if(busy.every(e=>e.tipo==='L'&&e.ordine==='primaria'&&altriInClasse(e,g,sc.data,[d.id]))){t='S';info=busy.map(e=>e.label+' primaria').join(', ')}
+      else if(busy.every(e=>e.tipo==='L'&&(e.ordine==='primaria'||isSostegno(e))&&altriInClasse(e,g,sc.data,[d.id]))){t='S';info=busy.map(e=>e.label+(isSostegno(e)?' (sostegno)':' primaria')).join(', ')}
       else continue;
     }
     else if(qui.some(e=>e.tipo==='D'))t='D';
@@ -804,7 +812,7 @@ function candidati(sc){
 }
 
 /* ---------- Storico e riepilogo ---------- */
-const TIPO_R={C:'Già in classe',D:'A disposizione',P:'Potenziamento',R:'Recupero ore',B:'Ora buca',G:'Fuori orario',F:'Chiamato apposta',S:'Tolto da compresenza',K:'Spostato a catena'};
+const TIPO_R={C:'Già in classe',D:'A disposizione',P:'Potenziamento',R:'Recupero ore',B:'Ora buca',G:'Fuori orario',F:'Chiamato apposta',S:'Tolto da compresenza/sostegno',K:'Spostato a catena'};
 function foto(e,assente,sost,tipo){return {a:e.a,b:e.b,...(e.conta!=null?{conta:e.conta}:{}),ordine:e.ordine,classe:labelE(e),nA:docente(assente)?.nome||'',nS:docente(sost)?.nome||'',tipo:tipo||''}}
 function completa(s){if(s.nS&&s.classe)return s;const e=entryById(docente(s.assente),s.impegno);return {...s,...(e?foto(e,s.assente,s.sostituto,s.tipo):{a:0,b:0,classe:'',ordine:''}),nA:s.nA||docente(s.assente)?.nome||'',nS:s.nS||docente(s.sostituto)?.nome||''}}
 const minuti=s=>s.conta!=null?s.conta:Math.max(0,s.b-s.a);
@@ -847,6 +855,8 @@ function applicaOrario(n){
     const orario=nd.orario.map(e=>({...e,id:'o'+st+'_'+e.id}));
     if(!o)return {id:'n'+st+'_'+nd.id,nome:nd.nome,ordini:nd.ordini,orario,disp:{liv:tutti('si'),dalle:{},fino:{},mattina:false}};
     const manuali=o.orario.filter(e=>/^(m|alt)/.test(e.id));
+    const kS=e=>[e.g,e.a,e.b,(e.classi||[]).join('+')].join('|');const sos=new Set(o.orario.filter(isSostegno).map(kS));
+    orario.forEach(e=>{if(e.tipo==='L'&&sos.has(kS(e))&&!isSostegno(e)){e.materiaOrig=e.materia||'';e.materia='Sostegno'}});
     return {...o,ordini:[...new Set([...(o.ordini||[]),...nd.ordini])],orario:[...orario,...manuali]};});
   for(const s of S.sostituzioni)Object.assign(s,completa(s));
   const ids=new Set(docs.map(d=>d.id));
@@ -1098,7 +1108,7 @@ function vDocEdit(){
   <section class="block"><div class="block-h"><h2>Orario settimanale</h2>${ui.add?'':`<button class="btn sm" data-act="addOpen">+ Aggiungi ora</button>`}</div>`;
   if(ui.add)h+=vAdd();
   h+=`<div class="week">${giorni.map(g=>{const es=d.orario.filter(e=>e.g===g).sort((a,b)=>a.a-b.a);
-    return `<div class="wday"><h3>${G_LUNGHI[g][0].toUpperCase()+G_LUNGHI[g].slice(1)}</h3>${es.length?`<ul class="wlist">${es.map(e=>`<li><span class="t">${hm(e.a)}–${hm(e.b)}</span><span class="w">${e.tipo==='L'?ordTag(e.ordine)+`<span>${esc(labelE(e))}</span>`:`<span class="tag t-${e.tipo}">${TIPO_E[e.tipo]}</span>${e.tipo==='X'?`<span class="muted sm">${esc(e.label)}</span>`:''}`}</span><button class="icon" data-act="eDel" data-v="${e.id}" aria-label="Elimina">×</button></li>`).join('')}</ul>`:`<p class="empty sm">Non in servizio.</p>`}</div>`}).join('')}</div></section>`;
+    return `<div class="wday"><h3>${G_LUNGHI[g][0].toUpperCase()+G_LUNGHI[g].slice(1)}</h3>${es.length?`<ul class="wlist">${es.map(e=>`<li><span class="t">${hm(e.a)}–${hm(e.b)}</span><span class="w">${e.tipo==='L'?ordTag(e.ordine)+`<span>${esc(labelE(e))}</span>`:`<span class="tag t-${e.tipo}">${TIPO_E[e.tipo]}</span>${e.tipo==='X'?`<span class="muted sm">${esc(e.label)}</span>`:''}`}</span>${e.tipo==='L'?`<button class="link sm" data-act="eSost" data-v="${e.id}" title="Ora di sostegno: non va coperta se manca, e il docente si può spostare">${isSostegno(e)?'Non è sostegno':'È sostegno'}</button>`:''}<button class="icon" data-act="eDel" data-v="${e.id}" aria-label="Elimina">×</button></li>`).join('')}</ul>`:`<p class="empty sm">Non in servizio.</p>`}</div>`}).join('')}</div></section>`;
   h+=`<section class="block danger">${ui.conferma==='doc'?`<p>Eliminare ${esc(d.nome||'questo docente')} e il suo orario?</p><div class="btns"><button class="btn bad" data-act="docDel">Elimina</button><button class="btn ghost" data-act="conf" data-v="">Annulla</button></div>`:`<button class="link bad" data-act="conf" data-v="doc">Elimina docente</button>`}</section>`;
   return h;
 }
@@ -1230,6 +1240,9 @@ document.addEventListener('click',e=>{
     case 'addSave':{const d=docente(ui.doc),a=ui.add;const cl=a.classe||S.classi.find(c=>c.ordine===a.ordine)?.id;
       const e={id:'m'+uid(),g:a.g,ordine:a.tipo==='L'?a.ordine:(d.ordini[0]||'medie'),a:toMin(a.a),b:toMin(a.b),tipo:a.tipo,classi:a.tipo==='L'&&cl?[cl]:[],label:a.tipo==='L'&&cl?classe(cl).nome:TIPO_E[a.tipo]};
       d.orario.push(e);if(a.tipo==='L'&&!d.ordini.includes(a.ordine))d.ordini.push(a.ordine);ui.add=null;save();toast('Ora aggiunta');break}
+    case 'eSost':{const d=docente(ui.doc);const e=d.orario.find(x=>x.id===v);if(!e)return;
+      if(isSostegno(e)){e.materia=e.materiaOrig||'';delete e.materiaOrig}else{e.materiaOrig=e.materia||'';e.materia='Sostegno'}
+      PROSSIMO=`${d.nome}: ${G_LUNGHI[e.g]} ${hm(e.a)}–${hm(e.b)} in ${e.label} ${isSostegno(e)?'segnata come sostegno':'non più sostegno'}`;save();break}
     case 'eDel':{const d=docente(ui.doc);d.orario=d.orario.filter(x=>x.id!==v);S.sostituzioni=S.sostituzioni.filter(s=>!(s.assente===d.id&&s.impegno===v));save();break}
     case 'conf':ui.conferma=v||null;ui.stBlocco=null;break;
     case 'stAnnulla':annulla(v);break;
