@@ -587,9 +587,11 @@ function cfgNow(){
 let profT;function profLater(){clearTimeout(profT);profT=setTimeout(()=>{if(db&&CLOUD.user)db.collection('utenti').doc(CLOUD.user.uid).set({profilo:S.profilo},{merge:true}).catch(()=>{})},800)}
 /* Classi del docente, copiate accanto alla sua email: l'app Classi le usa per creare le classi del collega */
 function classiDi(id){const d=docente(id);if(!d)return [];const out=new Map();
-  for(const e of d.orario){if(e.tipo!=='L'||/potenziamento/i.test(e.materia||''))continue;
-    for(const cid of (e.classi&&e.classi.length?e.classi:[null])){const c=cid&&classe(cid);const nome=c?c.nome:e.label;if(!nome)continue;const k=(c?c.id:nome)+'|'+(e.materia||'');
-      if(!out.has(k))out.set(k,{nome,ordine:c?.ordine||e.ordine||'',materia:e.materia||''})}}
+  for(const e of d.orario){if(e.tipo!=='L'||/potenziamento/i.test(e.materia||'')||/mensa|interscuola|pre-?\s?scuola|dopo-?\s?scuola|post-?\s?scuola/i.test(e.label||''))continue;
+    if(e.ordine==='medie'&&!e.materia)continue;// alle medie le lezioni hanno sempre la materia: senza, è un'ora di altro tipo
+    const mat=e.materia||(d.specialista||'');
+    for(const cid of (e.classi&&e.classi.length?e.classi:[null])){const c=cid&&classe(cid);const nome=c?c.nome:e.label;if(!nome)continue;const k=(c?c.id:nome)+'|'+mat;
+      if(!out.has(k))out.set(k,{nome,ordine:c?.ordine||e.ordine||'',materia:mat})}}
   const ord={infanzia:0,primaria:1,medie:2};return [...out.values()].sort((a,b)=>(ord[a.ordine]??3)-(ord[b.ordine]??3)||a.nome.localeCompare(b.nome,'it')||a.materia.localeCompare(b.materia,'it'))}
 let syncT;function syncMembriLater(){clearTimeout(syncT);syncT=setTimeout(syncMembri,1500)}
 function syncMembri(){
