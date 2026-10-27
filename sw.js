@@ -1,4 +1,4 @@
-const C='mie-sost-v11';
+const C='mie-sost-v12';
 const MIA=k=>k.startsWith('mie-sost-')||/^mie-v\d+$/.test(k); // le due app condividono l'origine: tocca solo le cache di questa
 const SHELL=['./','index.html','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});

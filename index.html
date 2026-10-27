@@ -234,6 +234,9 @@ textarea{resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:.8re
 .storia .st-r{margin:4px 0;padding-left:18px;font-size:.88rem}
 .storia .note{margin:6px 0 0}
 @media (max-width:560px){.storia .st-h{grid-template-columns:3em minmax(0,1fr)}.storia .st-h>.btn,.storia .st-h>.btns{grid-column:2}}
+.top-in{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.vai-app{flex:none;text-decoration:none;font-weight:700;font-size:.85rem;color:var(--accent-strong);background:var(--accent-soft);border-radius:999px;padding:8px 14px;white-space:nowrap}
+.vai-app:active{transform:scale(.97)}
 </style></head>
 <body>
 <div id="app"></div>
@@ -593,13 +596,19 @@ function classiDi(id){const d=docente(id);if(!d)return [];const out=new Map();
     for(const cid of (e.classi&&e.classi.length?e.classi:[null])){const c=cid&&classe(cid);const nome=c?c.nome:e.label;if(!nome)continue;const k=(c?c.id:nome)+'|'+mat;
       if(!out.has(k))out.set(k,{nome,ordine:c?.ordine||e.ordine||'',materia:mat})}}
   const ord={infanzia:0,primaria:1,medie:2};return [...out.values()].sort((a,b)=>(ord[a.ordine]??3)-(ord[b.ordine]??3)||a.nome.localeCompare(b.nome,'it')||a.materia.localeCompare(b.materia,'it'))}
+// orario settimanale del docente (tutte le sue ore, anche mensa e disposizione) per la pagina "Oggi" di Classi
+function oreDi(id){const d=docente(id);if(!d)return [];return d.orario.filter(e=>e.tipo).map(e=>({g:e.g,a:e.a,b:e.b,tipo:e.tipo,label:e.label||'',materia:e.materia||(e.tipo==='L'&&e.ordine!=='medie'?d.specialista||'':''),ordine:e.ordine||'',classi:(e.classi||[]).map(cid=>classe(cid)?.nome).filter(Boolean)})).sort((x,y)=>x.g-y.g||x.a-y.a)}
 let syncT;function syncMembriLater(){clearTimeout(syncT);syncT=setTimeout(syncMembri,1500)}
 function syncMembri(){
   if(!CLOUD.sid||CLOUD.ruolo!=='admin'||!CLOUD.cfgOk||!CLOUD.scuola?.membri||!S.docenti.length)return;
   const m=JSON.parse(JSON.stringify(CLOUD.scuola.membri));let cambia=false;
   for(const [e,r] of Object.entries(m)){const want=r.docente&&docente(r.docente)?classiDi(r.docente):null;
-    if(JSON.stringify(r.classi||null)!==JSON.stringify(want)){if(want)r.classi=want;else delete r.classi;cambia=true}}
-  if(cambia)db.collection('scuole').doc(CLOUD.sid).update({membri:m}).catch(()=>{});
+    if(JSON.stringify(r.classi||null)!==JSON.stringify(want)){if(want)r.classi=want;else delete r.classi;cambia=true}
+    const ore=r.docente&&docente(r.docente)?oreDi(r.docente):null;
+    if(JSON.stringify(r.ore||null)!==JSON.stringify(ore)){if(ore)r.ore=ore;else delete r.ore;cambia=true}}
+  const agg={};if(cambia)agg.membri=m;
+  const qui=location.origin+location.pathname.replace(/index\.html$/,'');if(/^https:/.test(qui)&&CLOUD.scuola.urlSost!==qui)agg.urlSost=qui;
+  if(Object.keys(agg).length)db.collection('scuole').doc(CLOUD.sid).update(agg).catch(()=>{});
 }
 async function salvaMembri(membri){
   const ref=db.collection('scuole').doc(CLOUD.sid);
@@ -952,12 +961,14 @@ function render0(){
   if(CLOUD.on&&CLOUD.nessuna){$app.innerHTML=vNessuna();return}
   if(CLOUD.on&&!CLOUD.ruolo){$app.innerHTML=vAttesa();return}
   if(CLOUD.ruolo==='user'){$app.innerHTML=vUser();return}
-  $app.innerHTML=`<header class="top"><div class="top-in"><button class="brand" data-act="tab" data-v="imp" aria-label="Apri profilo">${avatarHTML()}<span><span class="eyebrow">Make it easy</span><span class="app">Sostituzioni</span><span class="hi">Ciao${S.profilo.nome?', '+esc(S.profilo.nome):''}${CLOUD.user?` · <span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span>`:''}</span></span></button></div>
+  $app.innerHTML=`<header class="top"><div class="top-in"><button class="brand" data-act="tab" data-v="imp" aria-label="Apri profilo">${avatarHTML()}<span><span class="eyebrow">Make it easy</span><span class="app">Sostituzioni</span><span class="hi">Ciao${S.profilo.nome?', '+esc(S.profilo.nome):''}${CLOUD.user?` · <span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span>`:''}</span></span></button>${vVaiApp()}</div>
   <nav class="tabs" role="tablist">${[['sost','Sostituzioni'],['rie','Ore'],['doc','Docenti'],['storia','Cronologia'],['imp','Impostazioni']].map(([k,l])=>`<button role="tab" aria-selected="${ui.tab===k}" class="tab ${ui.tab===k?'on':''}" data-act="tab" data-v="${k}">${l}</button>`).join('')}</nav></header>
   <main class="main">${ui.tab==='sost'?vSost():ui.tab==='rie'?vRie():ui.tab==='doc'?vDoc():ui.tab==='storia'?vStoria():vImp()}</main>${ui.copia?vCopia():''}`;
   if(ui.copia){const t=document.getElementById('copyArea');t&&(t.focus(),t.select())}
 }
 
+function urlAltra(){const u=CLOUD.scuola?.urlClassi;if(u)return u;const b=location.pathname.replace(/[^/]*$/,'');return b.replace(/[^/]+\/$/,'')+'make-it-easy-classi/'}
+function vVaiApp(){return `<a class="vai-app" href="${esc(urlAltra())}" title="Apri Make it easy – Classi">Classi ›</a>`}
 function vAttesa(){
   const fermo=CLOUD.bloccata||CLOUD.stato==='errore';
   if(!fermo)return `<main class="main"><p class="muted">Carico i dati della scuola…</p><p class="muted sm">${esc(CLOUD.passo||'')}</p></main>`;
@@ -982,7 +993,7 @@ function vUser(){
   const giorni=[...new Set(mie.map(s=>s.data))].sort();
   const card=s=>`<li class="usost"><span class="time">${hm(s.a)}<small>${hm(s.b)}</small></span><span class="slot-t"><span class="cls">${esc(s.classe||'')}</span>${s.ordine?ordTag(s.ordine):''}<span class="muted sm">al posto di ${esc(s.nA||'')}</span></span></li>`;
   const td=ui.uData||(tutte[0]?.data)||oggi;const tab=CLOUD.mie.filter(s=>s.data===td).sort((a,b)=>a.a-b.a||String(a.classe).localeCompare(String(b.classe)));
-  return `<header class="top"><div class="top-in"><div class="brand">${avatarHTML()}<span><span class="eyebrow">Make it easy</span><span class="app">Sostituzioni</span><span class="hi">Ciao${nomeMio?', '+esc(nomeMio):''} · <span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span></span></span></div></div></header>
+  return `<header class="top"><div class="top-in"><div class="brand">${avatarHTML()}<span><span class="eyebrow">Make it easy</span><span class="app">Sostituzioni</span><span class="hi">Ciao${nomeMio?', '+esc(nomeMio):''} · <span class="sync s-${CLOUD.stato}">${STATO[CLOUD.stato]||''}</span></span></span></div>${vVaiApp()}</div></header>
   <main class="main">
   <section class="block"><h2>Le tue sostituzioni</h2>
   ${!mio?'<p class="note">Chi gestisce le sostituzioni non ha ancora collegato il tuo account al tuo nome: per ora vedi solo il tabellone qui sotto.</p>':
